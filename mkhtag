@@ -5,6 +5,13 @@ while getopts "f" flag; do
 	force=1
 done
 
+if [ $# -eq 0 ]; then
+	echo "Usage: mkhtag [-f] FILE..." >&2
+	echo "  Update htag checksums for the given file(s)" >&2
+	echo "  -f	force checksum update (ignore timestamp)" >&2
+	exit 1;
+fi
+
 for file
 do
 	if [ -f "$file" ] ; then
