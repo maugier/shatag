@@ -5,15 +5,11 @@ while getopts "f" flag; do
 	force=1
 done
 
-echo "Force=$force" >&2
-
 for file
 do
 	if [ -f "$file" ] ; then
 		DATE=`date -r "$file" +%s`
 		ODATE=`getfattr --only-values -n user.htag.ts "$file" 2>/dev/null`
-
-		echo "Date: $DATE / Odate: $ODATE" >&2
 
 		if [ "$DATE" -eq "$ODATE" ] && [ "0" -eq "$force" ]; then
 			echo "mkhtag: $file: checksum up to date" >&2
