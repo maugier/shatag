@@ -24,8 +24,8 @@ do
 			echo -n "mkhtag: $file: updating... " >&2
 			CKSUM=`sha256sum "$file" |awk '{print $1}'`
 			echo "$CKSUM" >&2
-			setfattr -n user.htag.ts -v "$DATE" "$file"
 			setfattr -n user.htag.sha256 -v "$CKSUM" "$file"
+			setfattr -n user.htag.ts -v "$DATE" "$file"
 		fi
 
 	fi
