@@ -18,7 +18,7 @@ do
 		DATE=`date -r "$file" +%s`
 		ODATE=`getfattr --only-values -n user.htag.ts "$file" 2>/dev/null`
 
-		if [ "$DATE" = "$ODATE" ] && [ "0" -eq "$force" ]; then
+		if [ "0$DATE" -eq "0$ODATE" ] && [ "0" -eq "$force" ]; then
 			echo "mkhtag: $file: checksum up to date" >&2
 		else
 			echo -n "mkhtag: $file: updating... " >&2
