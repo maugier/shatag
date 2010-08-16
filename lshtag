@@ -1,26 +1,29 @@
-#!/bin/sh
+#!/bin/bash
 
-for file; do
-
+htag() {
+	file="$1"
 	if [ -f "$file" ] ; then
-
 
                 DATE=`date -r "$file" +%s`
 		ODATE=`getfattr --only-values -n user.htag.ts "$file" 2>/dev/null`
 		HTAG=`getfattr --only-values -n user.htag.sha256 "$file" 2>/dev/null` 
-		if [ "0$DATE" -eq "0$ODATE" ]; then
+		if [ "0$DATE" -ne "0$ODATE" ]; then
 			if [ -z "$HTAG" ]; then
 				HTAG="<unknown>"
+			else
+				HTAG="<outdated>"
 			fi
-		else
-			HTAG="<outdated>"
 		fi
 
-		echo -n "$file"
-		echo -ne "\t"
-		echo "$HTAG"
+		echo -n "$HTAG  "
+		echo "$file"
 
 		
 	fi
+}
 
-done
+if [ $# -eq 0 ]; then
+	for file in *; do htag "$file"; done
+else
+	for file in "$@"; do htag "$file"; done
+fi

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 force=0
 while getopts "f" flag; do
