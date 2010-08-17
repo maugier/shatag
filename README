@@ -1,0 +1,28 @@
+Shatag is a collection of tools to compute, store and use sha256 checksums in the filesystem.
+
+
+Before you attempt to use it, make sure the filesystem you will be working on has
+support for extended attributes (remount them with the user_xattr option if needed).
+
+Summary of tools:
+
+* mkshatag [-vf] FILES...
+  
+ Will compute sha256 checksums, using the sha256sum(1) tool, and store it in the extended
+ attribute "user.htag.sha256". The modification time of the file will also be recorded in
+ "user.htag.ts". 
+
+* lshatag [FILES...]
+
+ Will output the cached checksums in an output format compatible with sha256sum(1).
+ If the cache is non-existent, "<unknown>" will be displayed. If the actual modification
+ time does not match the cached modification time, "<outdated>" will be displayed.
+
+* findshatag [...]
+
+ Wrapper for find(1) that will display cached sums
+
+
+TODO: 
+  * something that sorts the output of findshatag(1) to find duplicates
+  * something that fetches the tags and stores it in sqlite for remote usage

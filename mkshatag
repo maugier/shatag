@@ -1,4 +1,6 @@
 #!/bin/bash
+# shatag, Copyright 2010 Maxime Augier
+# Distributed under the terms of the GNU General Public License (GPL)
 
 force=0
 verbose=0
@@ -30,9 +32,8 @@ do
 		if [ "0$DATE" -eq "0$ODATE" ] && [ "0" -eq "$force" ]; then
 			ifverbose echo "mkhtag: $file: checksum up to date" >&2
 		else
-			ifverbose echo -n "mkhtag: $file: updating... " >&2
 			CKSUM=`sha256sum "$file" |awk '{print $1}'`
-			ifverbose echo "$CKSUM" >&2
+			echo "$CKSUM  $file"
 			setfattr -n user.htag.sha256 -v "$CKSUM" "$file"
 			setfattr -n user.htag.ts -v "$DATE" "$file"
 		fi

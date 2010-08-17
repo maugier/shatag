@@ -1,4 +1,16 @@
 #!/bin/bash
+# shatag, Copyright 2010 Maxime Augier
+# Distributed under the terms of the GNU General Public License (GPL)
+
+force=false
+
+while getopts "f" flag; do
+	case $flag in
+		f) force=true ;;
+	esac
+done
+let s=$OPTIND-1
+shift $s
 
 htag() {
 	file="$1"
@@ -8,10 +20,15 @@ htag() {
 		ODATE=`getfattr --only-values -n user.htag.ts "$file" 2>/dev/null`
 		HTAG=`getfattr --only-values -n user.htag.sha256 "$file" 2>/dev/null` 
 		if [ "0$DATE" -ne "0$ODATE" ]; then
-			if [ -z "$HTAG" ]; then
-				HTAG="<unknown>"
+			if $force; then
+				mkshatag "$file" >/dev/null 2>&1
+				HTAG=`getfattr --only-values -n user.htag.sha256 "$file" 2>/dev/null`
 			else
-				HTAG="<outdated>"
+				if [ -z "$HTAG" ]; then
+					HTAG="<unknown>"
+				else
+					HTAG="<outdated>"
+				fi
 			fi
 		fi
 
