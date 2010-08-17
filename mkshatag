@@ -1,16 +1,25 @@
 #!/bin/bash
 
 force=0
-while getopts "f" flag; do
-	force=1
-done
+verbose=0
 
-if [ $# -eq 0 ]; then
-	echo "Usage: mkhtag [-f] FILE..." >&2
+while getopts "fv" flag; do case "$flag" in
+	f) force=1 ;;
+	v) verbose=1 ;;
+	[?]) usage ;;
+esac; done
+
+ifverbose() { if [ $verbose -ne 0 ]; then "$@"; fi }
+
+usage() {
+	echo "Usage: mkhtag [-fv] FILE..." >&2
 	echo "  Update htag checksums for the given file(s)" >&2
 	echo "  -f	force checksum update (ignore timestamp)" >&2
+	echo "  -v	verbose" >&2
 	exit 1;
-fi
+}
+
+if [ $# -eq 0 ]; then usage; fi
 
 for file
 do
@@ -19,11 +28,11 @@ do
 		ODATE=`getfattr --only-values -n user.htag.ts "$file" 2>/dev/null`
 
 		if [ "0$DATE" -eq "0$ODATE" ] && [ "0" -eq "$force" ]; then
-			echo "mkhtag: $file: checksum up to date" >&2
+			ifverbose echo "mkhtag: $file: checksum up to date" >&2
 		else
-			echo -n "mkhtag: $file: updating... " >&2
+			ifverbose echo -n "mkhtag: $file: updating... " >&2
 			CKSUM=`sha256sum "$file" |awk '{print $1}'`
-			echo "$CKSUM" >&2
+			ifverbose echo "$CKSUM" >&2
 			setfattr -n user.htag.sha256 -v "$CKSUM" "$file"
 			setfattr -n user.htag.ts -v "$DATE" "$file"
 		fi
