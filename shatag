@@ -1,6 +1,7 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 import argparse
+import hashlib
 import os
 import sys
 import xattr
@@ -26,13 +27,13 @@ class ShatagFile:
 
         lsattr = xattr.listxattr(filename)
 
-        if 'user.shatag.ts' in lsattr:
+        if b'user.shatag.ts' in lsattr:
             self.ts = int(xattr.getxattr(filename, 'user.shatag.ts'))
         else:
             self.ts = None
 
-        if 'user.shatag.ts' in lsattr:
-            self.shatag = xattr.getxattr(filename, 'user.shatag.sha256')
+        if b'user.shatag.ts' in lsattr:
+            self.shatag = xattr.getxattr(filename, 'user.shatag.sha256').decode('utf-8')
         else:
             self.shatag = None
 
@@ -47,9 +48,13 @@ class ShatagFile:
         if self.state == 'bad': 
             self.rehash()
 
+    def tag(self):
+        if self.state == 'missing' or self.state == 'bad':
+            self.rehash()
+
     def show(self):
         if self.state == 'good':
-            print('{0}  {1}\n'.format(self.shatag(), self.filename))
+            print('{0}  {1}'.format(self.shatag, self.filename))
 
     def verbose(self):
         if self.state == 'missing':
@@ -59,20 +64,40 @@ class ShatagFile:
 
 
     def rehash(self):
-        xattr.setxattr(self.filename, 'user.shatag.ts', str(self.mtime()))
+        self.ts = self.mtime
         newsum = hashfile(self.filename)
-        xattr.setxattr(self.filename, 'user.shatag.sha256', 
+        self.shatag = newsum
+        xattr.setxattr(self.filename, 'user.shatag.sha256', newsum)
+        xattr.setxattr(self.filename, 'user.shatag.ts', str(self.mtime))
+        self.state = 'good'
 
-    def state(self):
 
-        
+parser = argparse.ArgumentParser( description='Display and update xattr-based checksums.')
+parser.add_argument('-t','--tag', action='store_true', help='add checksums to untagged files')
+parser.add_argument('-u','--update', action='store_true', help='update outdated checksum')
+parser.add_argument('-f','--force', action='store_true', help='recompute all checksums, even on good files')
+parser.add_argument('-q','--quiet', action='store_true', help='do not output checksums')
+parser.add_argument('-v','--verbose', action='store_true', help='report missing/invalid checksums')
+parser.add_argument('files', metavar='FILE', nargs='*', help='files to checksum')
 
-parser = argparse.ArgumentParser( description='Display and update xattr-stored checksums.')
-parser.add_argument('-t','--tag', action='store_true', help='Add checksums to the files')
-parser.add_argument('-u','--update', action='store_true', help='Update outdated checksum')
-parser.add_argument('-f','--force', action='store_true', help='Ignore timestamps, recompute all checksums')
-parser.add_argument('-q','--quiet', action='store_true', help='Do not output valid checksums')
-parser.add_argument('-v','--verbose', action='store_true', help='Display info about missing/invalid checksums')
-parser.add_argument('files', metavar='FILE', nargs='*', help='File to checksum')
+args = parser.parse_args()
 
-print(parser.parse_args())
+if args.files == []:
+    args.files = filter(lambda x: not x.startswith('.'), os.listdir('.'))
+
+for filename in args.files:
+    file = ShatagFile(filename)
+    if args.verbose:
+        file.verbose()
+
+    if args.force:
+        file.rehash()
+
+    if args.update:
+        file.update()
+
+    if args.tag:
+        file.tag()
+
+    if not args.quiet:
+        file.show()
