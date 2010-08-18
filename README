@@ -3,7 +3,7 @@
 Attributes.
 
   Shatag is currently written for Python 3, and requires the pyxattr
-(http://pyxattr.sourceforge.net) python package
+(http://pyxattr.sourceforge.net) and argparse (http://code.google.com/p/argparse/) packages.
 
   Before you attempt to use it, make sure the filesystem you will be working on has
 support for user extended attributes (Typically requiring to enable the user_xattr mount option).
@@ -26,6 +26,9 @@ Files that have no checksum, or whose checksum is older than the file modificati
    -q,--quiet: do not output the valid checksums on stdout
 
    -v,--verbose: print information about missing or outdated checksums on stderr.
+
+If -t or -u are used, giving file names is mandatory. Otherwise, if no files are given,
+it applies to all non-hidden files of the current directory.
 
 
 * findshatag [FINDSPEC]

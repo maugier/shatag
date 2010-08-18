@@ -83,14 +83,21 @@ parser.add_argument('files', metavar='FILE', nargs='*', help='files to checksum'
 args = parser.parse_args()
 
 if args.files == []:
-    args.files = filter(lambda x: not x.startswith('.'), os.listdir('.'))
+    if args.tag or args.update:
+        print ('shatag: Error: file name(s) required when using -t or -u', file=sys.stderr)
+    else:
+        args.files = filter(lambda x: not x.startswith('.'), os.listdir('.'))
+
+if (args.quiet and (not args.verbose) and not (args.update or args.tag)):
+    print ('shatag: Warning: this combination of flags does not do anything.', file=sys.stderr)
+    exit(1)
 
 for filename in args.files:
     file = ShatagFile(filename)
     if args.verbose:
         file.verbose()
 
-    if args.force:
+    if args.force and (args.update or args.tag):
         file.rehash()
 
     if args.update:
