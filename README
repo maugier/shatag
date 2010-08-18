@@ -1,7 +1,11 @@
-Shatag is a collection of tools to store sha256 checksums of files in their Extended
+  
+  Shatag is a collection of tools to store sha256 checksums of files in their Extended
 Attributes.
 
-Before you attempt to use it, make sure the filesystem you will be working on has
+  Shatag is currently written for Python 3, and requires the pyxattr
+(http://pyxattr.sourceforge.net) python package
+
+  Before you attempt to use it, make sure the filesystem you will be working on has
 support for user extended attributes (Typically requiring to enable the user_xattr mount option).
 
 Summary of tools:
