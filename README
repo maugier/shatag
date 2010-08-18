@@ -1,28 +1,36 @@
-Shatag is a collection of tools to compute, store and use sha256 checksums in the filesystem.
-
+Shatag is a collection of tools to store sha256 checksums of files in their Extended
+Attributes.
 
 Before you attempt to use it, make sure the filesystem you will be working on has
-support for extended attributes (remount them with the user_xattr option if needed).
+support for user extended attributes (Typically requiring to enable the user_xattr mount option).
 
 Summary of tools:
 
-* mkshatag [-vf] FILES...
+* shatag [-t|-u] [-fvq] FILES...
   
- Will compute sha256 checksums, using the sha256sum(1) tool, and store it in the extended
- attribute "user.htag.sha256". The modification time of the file will also be recorded in
- "user.htag.ts". 
+  With no arguments, display the stored checksums with the same format as the sha256sum(1) tool.
+Files that have no checksum, or whose checksum is older than the file modification time, will not be displayed.
 
-* lshatag [FILES...]
+   -t,--tag: compute and display a checksum for all specified files.Checksums whose timestamp
+       match the modification time of the file will not be recomputed.
 
- Will output the cached checksums in an output format compatible with sha256sum(1).
- If the cache is non-existent, "<unknown>" will be displayed. If the actual modification
- time does not match the cached modification time, "<outdated>" will be displayed.
+   -u,--update: like --tag, but ignore files without a checksum, only update the outdated ones.
 
-* findshatag [...]
+   -f,--force: when using --tag or --update, ignore the checksum timestamp (all checksums are
+       considered outdated)
 
- Wrapper for find(1) that will display cached sums
+   -q,--quiet: do not output the valid checksums on stdout
+
+   -v,--verbose: print information about missing or outdated checksums on stderr.
+
+
+* findshatag [FINDSPEC]
+
+ Trivial wrapper for find(1) that outputs the hashes
 
 
 TODO: 
   * something that sorts the output of findshatag(1) to find duplicates
   * something that fetches the tags and stores it in sqlite for remote usage
+  * something to manage collections of sqlite databases and efficiently lookup local checksums
+     against it.
