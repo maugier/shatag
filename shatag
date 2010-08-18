@@ -1,0 +1,78 @@
+#!/usr/bin/python
+
+import argparse
+import os
+import sys
+import xattr
+
+
+def hashfile (filename):
+    bs=4096
+    sha256 = hashlib.sha256()
+    with open(filename, 'rb') as fd:    
+        while True:
+            data = fd.read(bs)
+            if not data:
+                break
+            sha256.update(data)
+
+    return sha256.hexdigest()
+
+class ShatagFile:
+    def __init__(self, filename):
+        self.filename = filename 
+
+        self.mtime = int(os.stat(filename).st_mtime)
+
+        lsattr = xattr.listxattr(filename)
+
+        if 'user.shatag.ts' in lsattr:
+            self.ts = int(xattr.getxattr(filename, 'user.shatag.ts'))
+        else:
+            self.ts = None
+
+        if 'user.shatag.ts' in lsattr:
+            self.shatag = xattr.getxattr(filename, 'user.shatag.sha256')
+        else:
+            self.shatag = None
+
+        if self.mtime == self.ts:
+            self.state = 'good'
+        elif self.ts is None:      
+            self.state = 'missing'
+        else:
+            self.state = 'bad'
+            
+    def update(self):
+        if self.state == 'bad': 
+            self.rehash()
+
+    def show(self):
+        if self.state == 'good':
+            print('{0}  {1}\n'.format(self.shatag(), self.filename))
+
+    def verbose(self):
+        if self.state == 'missing':
+            print('<missing>  {0}'.format(self.filename), file=sys.stderr)
+        if self.state == 'bad':
+            print('<outdated>  {0}'.format(self.filename), file=sys.stderr)
+
+
+    def rehash(self):
+        xattr.setxattr(self.filename, 'user.shatag.ts', str(self.mtime()))
+        newsum = hashfile(self.filename)
+        xattr.setxattr(self.filename, 'user.shatag.sha256', 
+
+    def state(self):
+
+        
+
+parser = argparse.ArgumentParser( description='Display and update xattr-stored checksums.')
+parser.add_argument('-t','--tag', action='store_true', help='Add checksums to the files')
+parser.add_argument('-u','--update', action='store_true', help='Update outdated checksum')
+parser.add_argument('-f','--force', action='store_true', help='Ignore timestamps, recompute all checksums')
+parser.add_argument('-q','--quiet', action='store_true', help='Do not output valid checksums')
+parser.add_argument('-v','--verbose', action='store_true', help='Display info about missing/invalid checksums')
+parser.add_argument('files', metavar='FILE', nargs='*', help='File to checksum')
+
+print(parser.parse_args())
