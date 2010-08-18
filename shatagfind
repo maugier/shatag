@@ -1,3 +1,3 @@
 #!/bin/sh
 
-find $* -print0 |xargs -0 -l lshtag |grep -v '<unknown>'
+find $* -print0 |xargs -0 -l lshatag |grep -v '<unknown>'
