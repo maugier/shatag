@@ -17,12 +17,12 @@ htag() {
 	if [ -f "$file" ] ; then
 
                 DATE=`date -r "$file" +%s`
-		ODATE=`getfattr --only-values -n user.htag.ts "$file" 2>/dev/null`
-		HTAG=`getfattr --only-values -n user.htag.sha256 "$file" 2>/dev/null` 
+		ODATE=`getfattr --only-values -n user.shatag.ts "$file" 2>/dev/null`
+		HTAG=`getfattr --only-values -n user.shatag.sha256 "$file" 2>/dev/null` 
 		if [ "0$DATE" -ne "0$ODATE" ]; then
 			if $force; then
 				mkshatag "$file" >/dev/null 2>&1
-				HTAG=`getfattr --only-values -n user.htag.sha256 "$file" 2>/dev/null`
+				HTAG=`getfattr --only-values -n user.shatag.sha256 "$file" 2>/dev/null`
 			else
 				if [ -z "$HTAG" ]; then
 					HTAG="<unknown>"
