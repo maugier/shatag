@@ -15,13 +15,12 @@ Summary of tools:
   With no arguments, display the stored checksums with the same format as the sha256sum(1) tool.
 Files that have no checksum, or whose checksum is older than the file modification time, will not be displayed.
 
-   -t,--tag: compute and display a checksum for all specified files.Checksums whose timestamp
-       match the modification time of the file will not be recomputed.
+   -t,--tag: compute, store and display a checksum for all specified files.
 
-   -u,--update: like --tag, but ignore files without a checksum, only update the outdated ones.
+   -u,--update: compute, store and display the checksum for files that have an existing outdated checksum.
 
-   -f,--force: when using --tag or --update, ignore the checksum timestamp (all checksums are
-       considered outdated)
+   -f,--force: when using --tag or --update, old checksums are kept if the file modification time has
+               not changed. This option forces recomputing the checksum.
 
    -q,--quiet: do not output the valid checksums on stdout
 
