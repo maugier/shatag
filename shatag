@@ -3,6 +3,7 @@
 import argparse
 import hashlib
 import os
+import os.path
 import sys
 import xattr
 
@@ -93,6 +94,11 @@ if (args.quiet and (not args.verbose) and not (args.update or args.tag)):
     exit(1)
 
 for filename in args.files:
+
+    if not os.path.isfile(filename):
+        print ('shatag: Warning: {0} is not a file'.format(filename), file=sys.stderr)
+        continue
+
     file = ShatagFile(filename)
     if args.verbose:
         file.verbose()
