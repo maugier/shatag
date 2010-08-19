@@ -1,0 +1,130 @@
+#!/usr/bin/env python3
+
+import argparse
+import hashlib
+import os
+import os.path
+import sys
+import xattr
+
+
+def hashfile (filename):
+    bs=4096
+    sha256 = hashlib.sha256()
+    with open(filename, 'rb') as fd:    
+        while True:
+            data = fd.read(bs)
+            if not data:
+                break
+            sha256.update(data)
+
+    return sha256.hexdigest()
+
+class ShatagFile:
+    def __init__(self, filename):
+        self.filename = filename 
+
+        self.mtime = int(os.stat(filename).st_mtime)
+
+        lsattr = xattr.listxattr(filename)
+
+        if b'user.shatag.ts' in lsattr:
+            self.ts = int(xattr.getxattr(filename, 'user.shatag.ts'))
+        else:
+            self.ts = None
+
+        if b'user.shatag.ts' in lsattr:
+            self.shatag = xattr.getxattr(filename, 'user.shatag.sha256').decode('utf-8')
+        else:
+            self.shatag = None
+
+        if self.mtime == self.ts:
+            self.state = 'good'
+        elif self.ts is None:      
+            self.state = 'missing'
+        else:
+            self.state = 'bad'
+            
+    def update(self):
+        if self.state == 'bad': 
+            self.rehash()
+
+    def tag(self):
+        if self.state == 'missing' or self.state == 'bad':
+            self.rehash()
+
+    def show(self):
+        if self.state == 'good':
+            print('{0}  {1}'.format(self.shatag, self.filename))
+
+    def verbose(self):
+        if self.state == 'missing':
+            print('<missing>  {0}'.format(self.filename), file=sys.stderr)
+        if self.state == 'bad':
+            print('<outdated>  {0}'.format(self.filename), file=sys.stderr)
+
+
+    def rehash(self):
+        self.ts = self.mtime
+        newsum = hashfile(self.filename)
+        self.shatag = newsum
+        xattr.setxattr(self.filename, 'user.shatag.sha256', newsum)
+        xattr.setxattr(self.filename, 'user.shatag.ts', str(self.mtime))
+        self.state = 'good'
+
+
+parser = argparse.ArgumentParser( description='Display and update xattr-based checksums.')
+parser.add_argument('-t','--tag', action='store_true', help='add checksums to untagged files')
+parser.add_argument('-u','--update', action='store_true', help='update outdated checksum')
+parser.add_argument('-f','--force', action='store_true', help='recompute all checksums, even on good files')
+parser.add_argument('-q','--quiet', action='store_true', help='do not output checksums')
+parser.add_argument('-v','--verbose', action='store_true', help='report missing/invalid checksums')
+parser.add_argument('files', metavar='FILE', nargs='*', help='files to checksum')
+
+args = parser.parse_args()
+
+if args.files == []:
+    if args.tag or args.update:
+        print ('shatag: Error: file name(s) required when using -t or -u', file=sys.stderr)
+    else:
+        args.files = filter(lambda x: not x.startswith('.'), os.listdir('.'))
+
+if (args.quiet and (not args.verbose) and not (args.update or args.tag)):
+    print ('shatag: Warning: this combination of flags does not do anything.', file=sys.stderr)
+    exit(1)
+
+unsupported = False
+for filename in args.files:
+
+    if not os.path.isfile(filename):
+        print ('shatag: Warning: {0} is not a file'.format(filename), file=sys.stderr)
+        continue
+
+    try:
+        file = ShatagFile(filename)
+        if args.verbose:
+            file.verbose()
+
+        if args.force and (args.update or args.tag):
+            file.rehash()
+
+        if args.update:
+            file.update()
+
+        if args.tag:
+            file.tag()
+
+        if not args.quiet:
+            file.show()
+
+    except IOError as e:
+        print ('shatag: "{0}": IOError {1}: {2}'.format(filename, e.errno, e.strerror), file=sys.stderr) 
+        if e.errno == 95:
+            unsupported = True
+
+    except Exception as e:
+        print ('shatag: "{0}": {1}'.format(filename,e), file=sys.stderr)
+
+    if unsupported:
+            print ('shatag: Did you forget to enable user_xattr ?', file=sys.stderr)
+            exit(4)

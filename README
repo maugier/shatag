@@ -1,0 +1,43 @@
+  
+  Shatag is a collection of tools to store sha256 checksums of files in their Extended
+Attributes.
+
+  Shatag is currently written for Python 3, and requires the pyxattr
+(http://pyxattr.sourceforge.net) and argparse (http://code.google.com/p/argparse/) packages.
+
+  Before you attempt to use it, make sure the filesystem you will be working on has
+support for user extended attributes (Typically requiring to enable the user_xattr mount option).
+
+Summary of tools:
+
+* shatag [-t|-u] [-fvq] FILES...
+  
+  With no arguments, display the stored checksums with the same format as the sha256sum(1) tool.
+Files that have no checksum, or whose checksum is older than the file modification time, will not be displayed.
+
+   -t,--tag: compute and display a checksum for all specified files.Checksums whose timestamp
+       match the modification time of the file will not be recomputed.
+
+   -u,--update: like --tag, but ignore files without a checksum, only update the outdated ones.
+
+   -f,--force: when using --tag or --update, ignore the checksum timestamp (all checksums are
+       considered outdated)
+
+   -q,--quiet: do not output the valid checksums on stdout
+
+   -v,--verbose: print information about missing or outdated checksums on stderr.
+
+If -t or -u are used, giving file names is mandatory. Otherwise, if no files are given,
+it applies to all non-hidden files of the current directory.
+
+
+* findshatag [FINDSPEC]
+
+ Trivial wrapper for find(1) that outputs the hashes
+
+
+TODO: 
+  * something that sorts the output of findshatag(1) to find duplicates
+  * something that fetches the tags and stores it in sqlite for remote usage
+  * something to manage collections of sqlite databases and efficiently lookup local checksums
+     against it.

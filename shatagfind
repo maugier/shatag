@@ -1,0 +1,3 @@
+#!/bin/sh
+
+find $* -print0 |xargs -0 -l shatag -v
