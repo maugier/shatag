@@ -53,9 +53,9 @@ class ShatagFile:
         if self.state == 'missing' or self.state == 'bad':
             self.rehash()
 
-    def show(self):
+    def show(self,end='\n'):
         if self.state == 'good':
-            print('{0}  {1}'.format(self.shatag, self.filename))
+            print('{0}  {1}'.format(self.shatag, self.filename), end=end )
 
     def verbose(self):
         if self.state == 'missing':
@@ -79,6 +79,7 @@ parser.add_argument('-u','--update', action='store_true', help='update outdated 
 parser.add_argument('-f','--force', action='store_true', help='recompute all checksums, even on good files')
 parser.add_argument('-q','--quiet', action='store_true', help='do not output checksums')
 parser.add_argument('-v','--verbose', action='store_true', help='report missing/invalid checksums')
+parser.add_argument('-0','--print0', action='store_true', help='separate output records with NULLs instead of newlines')
 parser.add_argument('files', metavar='FILE', nargs='*', help='files to checksum')
 
 args = parser.parse_args()
@@ -93,7 +94,13 @@ if (args.quiet and (not args.verbose) and not (args.update or args.tag)):
     print ('shatag: Warning: this combination of flags does not do anything.', file=sys.stderr)
     exit(1)
 
+if (args.quiet and args.print0):
+    print ('shatag: Warning: --print0 useless when using --quiet', file=sys.stderr)
+
 unsupported = False
+
+end = args.print0 and '\0' or '\n'
+
 for filename in args.files:
 
     if not os.path.isfile(filename):
@@ -115,15 +122,12 @@ for filename in args.files:
             file.tag()
 
         if not args.quiet:
-            file.show()
+            file.show(end)
 
     except IOError as e:
         print ('shatag: "{0}": IOError {1}: {2}'.format(filename, e.errno, e.strerror), file=sys.stderr) 
         if e.errno == 95:
             unsupported = True
-
-    except Exception as e:
-        print ('shatag: "{0}": {1}'.format(filename,e), file=sys.stderr)
 
     if unsupported:
             print ('shatag: Did you forget to enable user_xattr ?', file=sys.stderr)
