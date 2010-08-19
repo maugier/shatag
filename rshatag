@@ -1,0 +1,23 @@
+#!/usr/bin/env python3
+# Copyright 2010 Maxime Augier
+# Distributed under the terms of the GNU General Public License
+
+
+import argparse
+import os
+import sys
+
+default_db = '{0}/.shatagdb'.format(os.environ['HOME'])
+
+parser = argparse.ArgumentParser( description='Fetches remote shatags over ssh and store it for remote inventory assessment.')
+parser.add_argument('-d','--database', metavar='DB', help='path to sqlite database (defaults to $HOME/.shatagdb)', default=default_db)
+parser.add_argument('-v','--verbose', action='store_true', help='report additions to the database')
+parser.add_argument('-n','--name', help='name of storage location (defaults to the hostname)')
+parser.add_argument('host', metavar='HOST', help='remote host name')
+parser.add_argument('path', metavar='PATH', help='path to index on remote host')
+
+args = parser.parse_args()
+
+print ('Not implemeted yet', file=sys.stderr)
+
+
