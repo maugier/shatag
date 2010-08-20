@@ -11,7 +11,7 @@ import sys
 
 # fileLineIter, stolen from Douglas Alan
 def fileLineIter(inputFile,
-                 inputNewline="\n",
+                 inputNewline=b"\n",
                  outputNewline=None,
                  readSize=8192):
    """Like the normal file iter but you can set what string indicates newline.
@@ -23,7 +23,7 @@ def fileLineIter(inputFile,
    something like "os.popen('find -print0')".
    """
    if outputNewline is None: outputNewline = inputNewline
-   partialLine = ''
+   partialLine = b''
    while True:
        charsJustRead = inputFile.read(readSize)
        if not charsJustRead: break
@@ -45,10 +45,10 @@ parser.add_argument('path', metavar='PATH', help='path to index on remote host')
 
 args = parser.parse_args()
 
-pattern = re.compile('([0-9a-f]{32})  (.*)')
+pattern = re.compile(b'([0-9a-f]{64})  (.*)')
 
 remote = subprocess.Popen(["ssh", args.host, "shatag", "-r0", args.path], stdout=subprocess.PIPE)
-for entry in fileLineIter(remote.stdout, inputNewline='\0', outputNewline=''):
+for entry in fileLineIter(remote.stdout, inputNewline=b'\0', outputNewline=b''):
     match = pattern.match(entry)
     if match is not None:
         (hash, filename) = match.group(1,2)
