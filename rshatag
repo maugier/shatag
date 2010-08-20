@@ -5,6 +5,7 @@
 
 import argparse
 import os
+import subprocess
 import sys
 
 default_db = '{0}/.shatagdb'.format(os.environ['HOME'])
@@ -17,6 +18,8 @@ parser.add_argument('host', metavar='HOST', help='remote host name')
 parser.add_argument('path', metavar='PATH', help='path to index on remote host')
 
 args = parser.parse_args()
+
+remote = subprocess.Popen(["ssh", args.host, "shatag", args
 
 print ('Not implemeted yet', file=sys.stderr)
 

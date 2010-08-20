@@ -10,15 +10,22 @@ support for user extended attributes (Typically requiring to enable the user_xat
 
 Summary of tools:
 
-* shatag [-t|-u] [-fvq] FILES...
+* shatag [-t|-u] [-fqvr0] FILES...
   
   With no arguments, display the stored checksums with the same format as the sha256sum(1) tool.
 Files that have no checksum, or whose checksum is older than the file modification time, will not be displayed.
+
+
+Mode selection flags:
 
    -t,--tag: compute and display a checksum for all specified files.Checksums whose timestamp
        match the modification time of the file will not be recomputed.
 
    -u,--update: like --tag, but ignore files without a checksum, only update the outdated ones.
+
+   Otherwise: just display known and fresh checksums.
+
+Options:
 
    -f,--force: when using --tag or --update, ignore the checksum timestamp (all checksums are
        considered outdated)
@@ -26,6 +33,10 @@ Files that have no checksum, or whose checksum is older than the file modificati
    -q,--quiet: do not output the valid checksums on stdout
 
    -v,--verbose: print information about missing or outdated checksums on stderr.
+
+   -r,--recursive: recurse trough directories
+
+   -0,--print0: when printing checksums, use NUL as record separator, instead of LF. 
 
 If -t or -u are used, giving file names is mandatory. Otherwise, if no files are given,
 it applies to all non-hidden files of the current directory.
