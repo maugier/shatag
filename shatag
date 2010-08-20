@@ -91,7 +91,8 @@ if args.files == []:
     if args.tag or args.update:
         print ('shatag: Error: file name(s) required when using -t or -u', file=sys.stderr)
     else:
-        args.files = filter(lambda x: os.path.isfile(x) and not x.startswith('.'), os.listdir('.'))
+        args.files = filter(lambda x: (args.recursive or os.path.isfile(x)) 
+                                      and not x.startswith('.'), os.listdir('.'))
 
 if (args.quiet and (not args.verbose) and not (args.update or args.tag)):
     print ('shatag: Warning: this combination of flags does not do anything.', file=sys.stderr)
@@ -108,7 +109,8 @@ def process(filename):
 
     if args.recursive:
         if os.path.isdir(filename) and not os.path.islink(filename):
-            [ process(os.path.join(filename), e) for e in os.listdir(filename) if not e.startswith('.') ]
+            [ process(os.path.join(filename, e)) for e in os.listdir(filename) if not e.startswith('.') ]
+            return
 
     else:
         if not os.path.isfile(filename) and not args.recursive:
