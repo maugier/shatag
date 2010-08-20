@@ -5,8 +5,34 @@
 
 import argparse
 import os
+import re
 import subprocess
 import sys
+
+# fileLineIter, stolen from Douglas Alan
+def fileLineIter(inputFile,
+                 inputNewline="\n",
+                 outputNewline=None,
+                 readSize=8192):
+   """Like the normal file iter but you can set what string indicates newline.
+   
+   The newline string can be arbitrarily long; it need not be restricted to a
+   single character. You can also set the read size and control whether or not
+   the newline string is left on the end of the iterated lines.  Setting
+   newline to '\0' is particularly good for use with an input file created with
+   something like "os.popen('find -print0')".
+   """
+   if outputNewline is None: outputNewline = inputNewline
+   partialLine = ''
+   while True:
+       charsJustRead = inputFile.read(readSize)
+       if not charsJustRead: break
+       partialLine += charsJustRead
+       lines = partialLine.split(inputNewline)
+       partialLine = lines.pop()
+       for line in lines: yield line + outputNewline
+   if partialLine: yield partialLine
+# End of stolen fragment
 
 default_db = '{0}/.shatagdb'.format(os.environ['HOME'])
 
@@ -19,7 +45,14 @@ parser.add_argument('path', metavar='PATH', help='path to index on remote host')
 
 args = parser.parse_args()
 
-remote = subprocess.Popen(["ssh", args.host, "shatag", args
+pattern = re.compile('([0-9a-f]{32})  (.*)')
+
+remote = subprocess.Popen(["ssh", args.host, "shatag", "-r0", args.path], stdout=subprocess.PIPE)
+for entry in fileLineIter(remote.stdout, inputNewline='\0', outputNewline=''):
+    match = pattern.match(entry)
+    if match is not None:
+        (hash, filename) = match.group(1,2)
+        print("Got {0} and {1}".format(hash, filename))
 
 print ('Not implemeted yet', file=sys.stderr)
 
