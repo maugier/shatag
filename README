@@ -40,7 +40,7 @@ Options:
 If -t or -u are used, giving file names is mandatory. Otherwise, if no files are given,
 it applies to all non-hidden files of the current directory.
 
-* rshatag [-v] [-d DATABASE] [-n NAME] HOST PATH
+* shatag-mkdb [-v] [-d DATABASE] [-n NAME] HOST PATH
 
   Collects tags from a given path on a remote host, inserting them in a database for fast
 local lookup
@@ -48,7 +48,14 @@ local lookup
   -n,--name NAME:  location name, that will be used by the lookup tools. Defaults to the hostname.
   
   -d,--database FILE: path to sqlite database (defaults to $HOME/.shatagdb)
+
+* shatagq [-C] [-d DATABASE] {-n NAME} FILES...
+
+  Examine local checkums, and compare against a database of remote files
   
+  -C,--nocolor: disable color output
+  -d,--database: database file (defaults to $HOME/.shatagdb)
+  -n,--name: names to include in comparison (defaults to all)
 
 TODO: 
   * something that sorts the output of findshatag(1) to find duplicates
