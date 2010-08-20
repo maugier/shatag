@@ -7,6 +7,7 @@ import argparse
 import os
 import re
 import subprocess
+import sqlite3
 import sys
 
 # fileLineIter, stolen from Douglas Alan
@@ -45,15 +46,29 @@ parser.add_argument('path', metavar='PATH', help='path to index on remote host')
 
 args = parser.parse_args()
 
+db = sqlite3.connect(args.database)
+
+c = db.cursor()
+try:
+        c.execute('create table contents(hash text, name text, path text)')
+except sqlite3.OperationalError as e:
+        pass #table already created
+
 pattern = re.compile(b'([0-9a-f]{64})  (.*)')
 
 remote = subprocess.Popen(["ssh", args.host, "shatag", "-r0", args.path], stdout=subprocess.PIPE)
+
+c.execute('delete from contents where name = ?', (args.name,))
+
 for entry in fileLineIter(remote.stdout, inputNewline=b'\0', outputNewline=b''):
     match = pattern.match(entry)
     if match is not None:
         (hash, filename) = match.group(1,2)
-        print("Got {0} and {1}".format(hash, filename))
+        if args.verbose:
+                print("{0}  {1}".format(hash.encode(), filename.encode()))
+        c.execute('insert into contents(hash,name,path) values(?,?,?)',
+                        (hash, args.name, filename))
 
-print ('Not implemeted yet', file=sys.stderr)
-
+db.commit()
+db.close()
 
