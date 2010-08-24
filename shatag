@@ -9,6 +9,7 @@ import os.path
 import sys
 import xattr
 
+wbuf = sys.stdout.buffer
 
 def hashfile (filename):
     bs=4096
@@ -55,12 +56,42 @@ class ShatagFile:
         if self.state == 'missing' or self.state == 'bad':
             self.rehash()
 
-    def show(self,end=b'\n'):
+    def show(self,end=b'\n',db=None):
         if self.state == 'good':
-            sys.stdout.buffer.write(self.shatag)
-            sys.stdout.buffer.write(b'  ')
-            sys.stdout.buffer.write(self.filename)
-            sys.stdout.buffer.write(end)
+            wbuf.write(self.shatag)
+            wbuf.write(b'  ')
+            wbuf.write(self.filename)
+            wbuf.write(end)
+
+    def lookup(self,db):
+        if self.state != 'good':
+            return
+
+        db.execute('select name, path from contents where hash=?', self.shatag)
+        for (name,path) in db:
+          if name == self.filename:
+            continue
+            
+          wbuf.write(self.filename)
+          wbuf.write(b'\t')
+          wbuf.write(name)
+          wbuf.write(b'\t')
+          wbuf.write(path)
+          wbuf.write(b'\n')
+
+
+    def lookupshort(self,db):
+
+        if self.state != 'good':
+            return
+
+        db.execute('select max(c) from (select count(hash) as c from contents where hash=? group by name)', self.shatag)
+        for (max,) in db:
+            wbuf.write(str(max).encode('ascii'))
+            wbuf.write('\t')
+            wbuf.write(self.filename)
+            wbuf.write('\n')
+
 
     def verbose(self):
         if self.state == 'missing':
@@ -86,6 +117,8 @@ parser.add_argument('-q','--quiet', action='store_true', help='do not output che
 parser.add_argument('-v','--verbose', action='store_true', help='report missing/invalid checksums')
 parser.add_argument('-r','--recursive', action='store_true', help='inspect directories recursively')
 parser.add_argument('-0','--print0', action='store_true', help='separate output records with NULLs instead of newlines')
+parser.add_argument('-l','--lookup', action='store_true', help='look up files in the database')
+parser.add_argument('-d','--database', metavar='DB', help='database path for -l mode')
 parser.add_argument('files', metavar='FILE', nargs='*', help='files to checksum')
 
 args = parser.parse_args()
