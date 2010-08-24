@@ -141,6 +141,8 @@ def process(filename):
         print ('shatag: "{0}": IOError {1}: {2}'.format(filename.decode(), e.errno, e.strerror), file=sys.stderr) 
         if e.errno == 95:
             unsupported = True
+        else:
+            raise
 
 for filename in args.files:
     process(filename.encode(sys.getfilesystemencoding(), 'surrogateescape'))

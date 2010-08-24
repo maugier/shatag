@@ -53,7 +53,7 @@ db = sqlite3.connect(args.database)
 
 c = db.cursor()
 try:
-        c.execute('create table contents(hash text, name text, path text)')
+        c.execute('create table contents(hash text, name text, path text, primary key(name,hash))')
 except sqlite3.OperationalError as e:
         pass #table already created
 
