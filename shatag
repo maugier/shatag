@@ -20,7 +20,7 @@ def hashfile (filename):
                 break
             sha256.update(data)
 
-    return sha256.hexdigest()
+    return sha256.hexdigest().encode('ascii')
 
 class ShatagFile:
     def __init__(self, filename):
@@ -36,7 +36,7 @@ class ShatagFile:
             self.ts = None
 
         if b'user.shatag.ts' in lsattr:
-            self.shatag = xattr.getxattr(filename, 'user.shatag.sha256').decode('utf-8')
+            self.shatag = xattr.getxattr(filename, 'user.shatag.sha256')
         else:
             self.shatag = None
 
@@ -55,9 +55,12 @@ class ShatagFile:
         if self.state == 'missing' or self.state == 'bad':
             self.rehash()
 
-    def show(self,end='\n'):
+    def show(self,end=b'\n'):
         if self.state == 'good':
-            print('{0}  {1}'.format(self.shatag, self.filename), end=end )
+            sys.stdout.buffer.write(self.shatag)
+            sys.stdout.buffer.write(b'  ')
+            sys.stdout.buffer.write(self.filename)
+            sys.stdout.buffer.write(end)
 
     def verbose(self):
         if self.state == 'missing':
@@ -92,7 +95,7 @@ if args.files == []:
         print ('shatag: Error: file name(s) required when using -t or -u', file=sys.stderr)
     else:
         args.files = filter(lambda x: (args.recursive or os.path.isfile(x)) 
-                                      and not x.startswith('.'), os.listdir('.'))
+                                      and not x.startswith(b'.'), os.listdir(b'.'))
 
 if (args.quiet and (not args.verbose) and not (args.update or args.tag)):
     print ('shatag: Warning: this combination of flags does not do anything.', file=sys.stderr)
@@ -103,18 +106,18 @@ if (args.quiet and args.print0):
 
 unsupported = False
 
-end = args.print0 and '\0' or '\n'
+end = args.print0 and b'\0' or b'\n'
 
 def process(filename):
 
     if args.recursive:
         if os.path.isdir(filename) and not os.path.islink(filename):
-            [ process(os.path.join(filename, e)) for e in os.listdir(filename) if not e.startswith('.') ]
+            [ process(os.path.join(filename, e)) for e in os.listdir(filename) if not e.startswith(b'.') ]
             return
 
     else:
         if not os.path.isfile(filename) and not args.recursive:
-            print ('shatag: Warning: {0} is not a file'.format(filename), file=sys.stderr)
+            print ('shatag: Warning: {0} is not a file'.format(filename.decode()), file=sys.stderr)
             return
 
     try:
@@ -135,13 +138,12 @@ def process(filename):
             file.show(end)
 
     except IOError as e:
-        print ('shatag: "{0}": IOError {1}: {2}'.format(filename, e.errno, e.strerror), file=sys.stderr) 
+        print ('shatag: "{0}": IOError {1}: {2}'.format(filename.decode(), e.errno, e.strerror), file=sys.stderr) 
         if e.errno == 95:
             unsupported = True
 
-
 for filename in args.files:
-    process(filename)
+    process(filename.encode(sys.getfilesystemencoding(), 'surrogateescape'))
 
 if unsupported:
     print ('shatag: Did you forget to enable user_xattr ?', file=sys.stderr)
