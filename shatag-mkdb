@@ -46,6 +46,9 @@ parser.add_argument('path', metavar='PATH', help='path to index on remote host')
 
 args = parser.parse_args()
 
+if (args.name is None):
+    args.name = args.host
+
 db = sqlite3.connect(args.database)
 
 c = db.cursor()
@@ -65,7 +68,7 @@ for entry in fileLineIter(remote.stdout, inputNewline=b'\0', outputNewline=b''):
     if match is not None:
         (hash, filename) = match.group(1,2)
         if args.verbose:
-                print("{0}  {1}".format(hash.encode(), filename.encode()))
+                print("{0}  {1}".format(hash.decode(), filename.decode()))
         c.execute('insert into contents(hash,name,path) values(?,?,?)',
                         (hash, args.name, filename))
 
