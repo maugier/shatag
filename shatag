@@ -81,8 +81,6 @@ class ShatagFile:
         wbuf.write(self.filename)
         wbuf.write(b':\n')
         for (name,path) in db:
-          if name == self.filename:
-            continue
             
           wbuf.write(b'\t')
           wbuf.write(name.encode())
