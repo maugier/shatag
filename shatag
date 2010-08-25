@@ -128,7 +128,8 @@ if args.files == []:
         print ('shatag: Error: file name(s) required when using -t or -u', file=sys.stderr)
     else:
         args.files = filter(lambda x: (args.recursive or os.path.isfile(x)) 
-                                      and not x.startswith(b'.'), os.listdir(b'.'))
+                                      and not x.startswith('.'), os.listdir('.'))
+
 
 if (args.quiet and (not args.verbose) and not (args.update or args.tag)):
     print ('shatag: Warning: this combination of flags does not do anything.', file=sys.stderr)
