@@ -38,15 +38,16 @@ class ShatagFile:
 
         lsattr = xattr.listxattr(filename)
 
-        if b'user.shatag.ts' in lsattr:
-            self.ts = int(xattr.getxattr(filename, 'user.shatag.ts'))
-        else:
-            self.ts = None
+        self.ts = None
+        self.shatag = None
 
-        if b'user.shatag.ts' in lsattr:
+        try:
+            self.ts = int(xattr.getxattr(filename, 'user.shatag.ts'))
             self.shatag = xattr.getxattr(filename, 'user.shatag.sha256')
-        else:
-            self.shatag = None
+        except IOError as e:
+            if e.errno != 61:  # No data available
+                raise
+
 
         if self.mtime == self.ts:
             self.state = 'good'
