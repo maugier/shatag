@@ -110,5 +110,23 @@ is displayed on a line, along with a color and prefix symbol.
 
   Most options documented in LOCAL USAGE (-t,-u,-v,-f,-0,-r) retain their meaning when querying the local database.
 
+
+TECHNICAL DETAILS:
+
+  shatag stores a single sha256 checksum in hexadecimal (64 ascii characters) in the "shatag.sha256" attribute,
+and the modification time of the file at the moment the checksum was computed, as decimal unix time, in "shatag.ts".
+
+ The checksum is considered valid if the modification time of the file is still equal to the timestamp stored in the attribute.
+With respect to race conditions, shatag will always read the stored timestamp before the checksum, and the checksum before
+the actual mtime; it will always write the checksum before the timestamp. In case of accidental parallel operation, shatag
+will rather compute unneccesary checksums than consider an old checksum valid.
+
+  The local sqlite database contains a single table:
+  
+  create table contents(text hash, text name, text path, primary key (hash,name,path))
+
+  When querying the database, shatag will lookup the hash and count the matching paths at each location. The file will
+be considered a dupe if any location has the file more than once.
+
 TODO: 
     * Fix probable encoding quirks for filenames
