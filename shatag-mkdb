@@ -39,6 +39,8 @@ default_db = '{0}/.shatagdb'.format(os.environ['HOME'])
 
 parser = argparse.ArgumentParser( description='Fetches remote shatags over ssh and store it for remote inventory assessment.')
 parser.add_argument('-d','--database', metavar='DB', help='path to sqlite database (defaults to $HOME/.shatagdb)', default=default_db)
+parser.add_argument('-t','--tag', action='store_true', help='run remote shatag in tag mode (see shatag help)')
+parser.add_argument('-u','--update', action='store_true', help='run remote shatag in update mode (see shatag help)')
 parser.add_argument('-v','--verbose', action='store_true', help='report additions to the database')
 parser.add_argument('-n','--name', help='name of storage location (defaults to the hostname)')
 parser.add_argument('host', metavar='HOST', help='remote host name')
@@ -59,7 +61,15 @@ except sqlite3.OperationalError as e:
 
 pattern = re.compile(b'([0-9a-f]{64})  (.*)')
 
-remote = subprocess.Popen(["ssh", args.host, "shatag", "-r0", args.path], stdout=subprocess.PIPE)
+sshargs = ["ssh", args.host, "shatag", "-r0"]
+if args.tag:
+    sshargs.append("-t")
+if args.update:
+    sshargs.append("-u")
+
+sshargs.append(args.path)
+
+remote = subprocess.Popen(sshargs, stdout=subprocess.PIPE)
 
 c.execute('delete from contents where name = ?', (args.name,))
 
