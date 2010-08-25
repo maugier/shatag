@@ -47,6 +47,9 @@ class ShatagFile:
             self.state = 'missing'
         else:
             self.state = 'bad'
+
+    def printable(self):
+        return self.filename.decode(sys.getfilesystemencoding(), 'surrogateescape')
             
     def update(self):
         if self.state == 'bad': 
@@ -95,9 +98,9 @@ class ShatagFile:
 
     def verbose(self):
         if self.state == 'missing':
-            print('<missing>  {0}'.format(self.filename), file=sys.stderr)
+            print('<missing>  {0}'.format(self.printable()), file=sys.stderr)
         if self.state == 'bad':
-            print('<outdated>  {0}'.format(self.filename), file=sys.stderr)
+            print('<outdated>  {0}'.format(self.printable()), file=sys.stderr)
 
 
     def rehash(self):
