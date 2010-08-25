@@ -6,10 +6,17 @@ import argparse
 import hashlib
 import os
 import os.path
+import sqlite3
 import sys
 import xattr
 
 wbuf = sys.stdout.buffer
+
+def cs(max):
+    if max is None: return b'\x1b[33;1m- '
+    if max == 1: return b'\x1b[32;1m= '
+    return b'\x1b[31;1m+ '
+
 
 def hashfile (filename):
     bs=4096
@@ -70,15 +77,16 @@ class ShatagFile:
         if self.state != 'good':
             return
 
-        db.execute('select name, path from contents where hash=?', self.shatag)
+        db.execute('select name, path from contents where hash=?', (self.shatag,))
+        wbuf.write(self.filename)
+        wbuf.write(b':\n')
         for (name,path) in db:
           if name == self.filename:
             continue
             
-          wbuf.write(self.filename)
           wbuf.write(b'\t')
-          wbuf.write(name)
-          wbuf.write(b'\t')
+          wbuf.write(name.encode())
+          wbuf.write(b':')
           wbuf.write(path)
           wbuf.write(b'\n')
 
@@ -88,12 +96,12 @@ class ShatagFile:
         if self.state != 'good':
             return
 
-        db.execute('select max(c) from (select count(hash) as c from contents where hash=? group by name)', self.shatag)
+        db.execute('select max(c) from (select name, count(hash) as c from contents where hash=? group by name)', (self.shatag,))
         for (max,) in db:
-            wbuf.write(str(max).encode('ascii'))
-            wbuf.write('\t')
+            wbuf.write(cs(max))
             wbuf.write(self.filename)
-            wbuf.write('\n')
+            wbuf.write(b'\x1b[0m\n')
+            return
 
 
     def verbose(self):
@@ -111,6 +119,7 @@ class ShatagFile:
         xattr.setxattr(self.filename, 'user.shatag.ts', str(self.mtime))
         self.state = 'good'
 
+default_db = '{0}/.shatagdb'.format(os.environ['HOME'])
 
 parser = argparse.ArgumentParser( description='Display and update xattr-based checksums.')
 parser.add_argument('-t','--tag', action='store_true', help='add checksums to untagged files')
@@ -120,8 +129,9 @@ parser.add_argument('-q','--quiet', action='store_true', help='do not output che
 parser.add_argument('-v','--verbose', action='store_true', help='report missing/invalid checksums')
 parser.add_argument('-r','--recursive', action='store_true', help='inspect directories recursively')
 parser.add_argument('-0','--print0', action='store_true', help='separate output records with NULLs instead of newlines')
-parser.add_argument('-l','--lookup', action='store_true', help='look up files in the database')
-parser.add_argument('-d','--database', metavar='DB', help='database path for -l mode')
+parser.add_argument('-l','--lookup', action='store_true', help='look up files in the database, color/symbol-code them')
+parser.add_argument('-L','--lookup-verbose', action='store_true', help='verbosely list duplicate locations')
+parser.add_argument('-d','--database', metavar='DB', help='database path for -l mode', default=default_db)
 parser.add_argument('files', metavar='FILE', nargs='*', help='files to checksum')
 
 args = parser.parse_args()
@@ -144,6 +154,12 @@ if (args.quiet and args.print0):
 unsupported = False
 
 end = args.print0 and b'\0' or b'\n'
+
+cur = None
+
+if args.lookup or args.lookup_verbose:
+    db = sqlite3.connect(args.database)
+    cur = db.cursor()
 
 def process(filename):
 
@@ -171,8 +187,14 @@ def process(filename):
         if args.tag:
             file.tag()
 
-        if not args.quiet:
+        if not (args.quiet or args.lookup or args.lookup_verbose):
             file.show(end)
+
+        if args.lookup:
+            file.lookupshort(cur)
+
+        if args.lookup_verbose:
+            file.lookup(cur)
 
     except IOError as e:
         print ('shatag: "{0}": IOError {1}: {2}'.format(filename.decode(), e.errno, e.strerror), file=sys.stderr) 
