@@ -161,18 +161,18 @@ if args.lookup or args.lookup_verbose:
     cur = db.cursor()
 
 def process(filename):
-
-    if args.recursive:
-        if os.path.isdir(filename) and not os.path.islink(filename):
-            [ process(os.path.join(filename, e)) for e in os.listdir(filename) if not e.startswith(b'.') ]
-            return
-
-    else:
-        if not os.path.isfile(filename) and not args.recursive:
-            print ('shatag: Warning: {0} is not a file'.format(filename.decode()), file=sys.stderr)
-            return
-
     try:
+
+        if args.recursive:
+            if os.path.isdir(filename) and not os.path.islink(filename):
+                [ process(os.path.join(filename, e)) for e in os.listdir(filename) if not e.startswith(b'.') ]
+                return
+
+        else:
+            if not os.path.isfile(filename) and not args.recursive:
+                print ('shatag: Warning: {0} is not a file'.format(filename.decode()), file=sys.stderr)
+                return
+
         file = ShatagFile(filename)
         if args.verbose:
             file.verbose()
@@ -199,6 +199,8 @@ def process(filename):
         print ('shatag: "{0}": IOError {1}: {2}'.format(filename.decode(), e.errno, e.strerror), file=sys.stderr) 
         if e.errno == 95:
             unsupported = True
+    except OSError as e:
+        print ('shatag: {0}'.format(e), file=sys.stderr)
 
 for filename in args.files:
     process(filename.encode(sys.getfilesystemencoding(), 'surrogateescape'))
