@@ -1,0 +1,100 @@
+.TH shatag 1 26.08.2010 "Shatag 0.1" "Shatag"
+
+.SH NAME
+
+shatag - tag files with their SHA-256 checksums
+
+.SH SYNOPSIS
+.B shatag
+.nh
+[\fB\-fhlLqrtuv0\fR]
+[\fB\-D \fIDATABASE\fR]
+[\fIFILES\fR]...
+.hy
+
+.SH DESCRIPTION
+.B shatag
+is a tool for computing and caching SHA-256 file checksums, and efficiently search
+for identical file across systems. Checksums are stored using the POSIX Extended
+Attributes filesystem facility, and are preserved when files are moved or renamed.
+Checksums can be fetched from a remote host and stored in an sqlite database
+for fast lookups.
+
+.SH OPTIONS
+When invoked with no options,
+.B shatag
+just displays the cached, valid checksums. If no files are specified, it applies to all non-hidden files
+in the current directory. The output format is identical to the one of the
+.B sha256sum
+command.
+
+.IP "\fB\-f, \-\-force\fP"
+When running with
+.B -t
+or
+.B -u
+, recompute the checksum even if the file modification has not changed.
+
+.IP "\fB\-h, \-\-help\fP"
+Displays the help message
+
+.IP "\fB\-l, \-\-lookup\fP"
+Instead of displaying the checksums, look them up against the local database
+and indicate if the file exists. A
+.B "yellow -"
+mark indicates that the file does not exist somewhere else, a 
+.B "green ="
+that the file exists at one or several remote locations, and a
+.B "red +"
+that the file has more than one copy at any of the remote locations.
+
+.IP "\fB\-L, \-\-lookup\-verbose\fP"
+Instead of displaying the checksums, look them up against the local database.
+Print all the known remote locations for identical files.
+
+.IP "\fB\-q, \-\-quiet\fP"
+Do not display the valid checksums found by the tool.
+
+
+.IP "\fB\-r, \-\-recursive\fP"
+Recurse trough subdirectories
+
+.IP "\fB\-t, \-\-tag\fP"
+Compute new checksums for files that don't have one, or when it is outdated.
+
+.IP "\fB\-u, \-\-update\fP"
+Recompute the outdated checksums only. Be aware that this can behave counter-intuitively;
+outdated checksums will only exists for files that have been appended to or partially modified.
+Many programs dealing with small files (some well-known text editors, notably) will overwrite
+the whole file when saving, and the new file will be lacking a checksum entirely. For these
+cases, use
+.B "\-t" instead.
+
+.IP "\fB\-v, \-\-verbose\fP"
+Report encoutered files that have an outated or missing checksum.
+
+.IP "\fB\-0, \-\-null\fP"
+Instead of outputting one record per line (like
+.B sha256sum
+does,) separate records with null characters.
+
+
+.IP "\fB\-d \fIDATABASE\fR, \fB\-\-database \fIDATABASE\fP"
+Set the path of the SQLite database to query when checking for duplicates
+with
+.B "\-l" 
+or
+.B "\-L"
+.
+
+
+.SH BUGS
+Support for non-ASCII filenames across systems of different and/or inconsistent encodings have not been fully tested.
+
+Not all option combinations are sensible.
+
+.SH "REPORTING BUGS"
+Report shatag bugs to the bugtracker at http://bitbucket.org/maugier/shatag,
+
+.SH "SEE ALSO"
+shatag-mkdb(1)
