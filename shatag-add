@@ -67,6 +67,7 @@ for entry in fileLineIter(sys.stdin, inputNewline=b'\0', outputNewline=b''):
                 sys.stdout.write(hash)
                 sys.stdout.write(b"  ")
                 sys.stdout.write(filename)
+                sys.stdout.write(b'\n')
         c.execute('insert into contents(hash,name,path) values(?,?,?)',
                         (hash, args.name, filename))
 
