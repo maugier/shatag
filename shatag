@@ -109,7 +109,8 @@ class ShatagFile:
         wbuf.write(self.filename)
         wbuf.write(b':\n')
         for (name,path) in db:
-            
+          if args.remote is not None and name not in args.remote:
+            continue
           wbuf.write(b'\t')
           wbuf.write(name.encode())
           wbuf.write(b':')
