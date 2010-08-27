@@ -54,6 +54,9 @@ except sqlite3.OperationalError as e:
 
 pattern = re.compile(b'([0-9a-f]{64})  (.*)')
 
+c.execute('select count(*) from contents')
+old_rows = c.fetchone()[0]
+new_rows = 0
 c.execute('delete from contents where name = ?', (args.name,))
 
 sys.stdout = sys.stdout.detach()
@@ -68,9 +71,11 @@ for entry in fileLineIter(sys.stdin, inputNewline=b'\0', outputNewline=b''):
                 sys.stdout.write(b"  ")
                 sys.stdout.write(filename)
                 sys.stdout.write(b'\n')
+        new_rows += 1
         c.execute('insert into contents(hash,name,path) values(?,?,?)',
                         (hash, args.name, filename))
 
 db.commit()
 db.close()
 
+print('{0} rows added, {1} rows deleted ({2})'.format(new_rows, old_rows, new_rows - old_rows), file=sys.stderr)
