@@ -14,9 +14,9 @@ import xattr
 wbuf = sys.stdout.buffer
 
 def cs(dupe,rem):
-    if dupe: return b'\x1b[31;1m- '
+    if dupe: return b'\x1b[31;1m+ '
     if rem: return b'\x1b[32;1m= '
-    return b'\x1b[33;1m+ '
+    return b'\x1b[33;1m- '
 
 def chost():
     (canonical,aliases,addresses) = socket.gethostbyaddr(socket.gethostname())
