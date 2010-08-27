@@ -28,7 +28,7 @@ if (args.name is None):
     #TODO: Call ssh to figure hostname remotely
     args.name = args.host
 
-sshargs = ["ssh", args.host, "shatag", "-r0"]
+sshargs = ["ssh", args.host, "shatag", "-cr0"]
 if args.tag:
     sshargs.append("-t")
 if args.update:
