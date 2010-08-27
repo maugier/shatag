@@ -10,35 +10,11 @@ import subprocess
 import sqlite3
 import sys
 
-# fileLineIter, stolen from Douglas Alan
-def fileLineIter(inputFile,
-                 inputNewline=b"\n",
-                 outputNewline=None,
-                 readSize=8192):
-   """Like the normal file iter but you can set what string indicates newline.
-   
-   The newline string can be arbitrarily long; it need not be restricted to a
-   single character. You can also set the read size and control whether or not
-   the newline string is left on the end of the iterated lines.  Setting
-   newline to '\0' is particularly good for use with an input file created with
-   something like "os.popen('find -print0')".
-   """
-   if outputNewline is None: outputNewline = inputNewline
-   partialLine = b''
-   while True:
-       charsJustRead = inputFile.read(readSize)
-       if not charsJustRead: break
-       partialLine += charsJustRead
-       lines = partialLine.split(inputNewline)
-       partialLine = lines.pop()
-       for line in lines: yield line + outputNewline
-   if partialLine: yield partialLine
-# End of stolen fragment
 
 default_db = '{0}/.shatagdb'.format(os.environ['HOME'])
 
 parser = argparse.ArgumentParser( description='Fetches remote shatags over ssh and store it for remote inventory assessment.')
-parser.add_argument('-d','--database', metavar='DB', help='path to sqlite database (defaults to $HOME/.shatagdb)', default=default_db)
+parser.add_argument('-d','--database', metavar='DB', help='path to sqlite database (defaults to $HOME/.shatagdb)' )
 parser.add_argument('-t','--tag', action='store_true', help='run remote shatag in tag mode (see shatag help)')
 parser.add_argument('-u','--update', action='store_true', help='run remote shatag in update mode (see shatag help)')
 parser.add_argument('-v','--verbose', action='store_true', help='report additions to the database')
@@ -49,17 +25,8 @@ parser.add_argument('path', metavar='PATH', help='path to index on remote host')
 args = parser.parse_args()
 
 if (args.name is None):
+    #TODO: Call ssh to figure hostname remotely
     args.name = args.host
-
-db = sqlite3.connect(args.database)
-
-c = db.cursor()
-try:
-        c.execute('create table contents(hash text, name text, path text, primary key(hash,name,path))')
-except sqlite3.OperationalError as e:
-        pass #table already created
-
-pattern = re.compile(b'([0-9a-f]{64})  (.*)')
 
 sshargs = ["ssh", args.host, "shatag", "-r0"]
 if args.tag:
@@ -69,19 +36,17 @@ if args.update:
 
 sshargs.append(args.path)
 
-remote = subprocess.Popen(sshargs, stdout=subprocess.PIPE)
+addargs = ["shatag-add", args.name]
 
-c.execute('delete from contents where name = ?', (args.name,))
+if args.database is not None:
+    addargs += ['-d', args.database]
 
-for entry in fileLineIter(remote.stdout, inputNewline=b'\0', outputNewline=b''):
-    match = pattern.match(entry)
-    if match is not None:
-        (hash, filename) = match.group(1,2)
-        if args.verbose:
-                print("{0}  {1}".format(hash.decode(), filename.decode()))
-        c.execute('insert into contents(hash,name,path) values(?,?,?)',
-                        (hash, args.name, filename))
+if args.verbose:
+    addargs.append('-v')
 
-db.commit()
-db.close()
+print("Running {0} | {1}".format(sshargs,addargs), file=sys.stderr)
 
+shatag = subprocess.Popen(sshargs, stdout=subprocess.PIPE)
+adder = subprocess.Popen(addargs, stdin=shatag.stdout)
+
+adder.wait()

@@ -1,0 +1,75 @@
+#!/usr/bin/env python3
+# Copyright 2010 Maxime Augier
+# Distributed under the terms of the GNU General Public License
+
+
+import argparse
+import os
+import re
+import subprocess
+import sqlite3
+import sys
+
+# fileLineIter, stolen from Douglas Alan
+def fileLineIter(inputFile,
+                 inputNewline=b"\n",
+                 outputNewline=None,
+                 readSize=8192):
+   """Like the normal file iter but you can set what string indicates newline.
+   
+   The newline string can be arbitrarily long; it need not be restricted to a
+   single character. You can also set the read size and control whether or not
+   the newline string is left on the end of the iterated lines.  Setting
+   newline to '\0' is particularly good for use with an input file created with
+   something like "os.popen('find -print0')".
+   """
+   if outputNewline is None: outputNewline = inputNewline
+   partialLine = b''
+   while True:
+       charsJustRead = inputFile.read(readSize)
+       if not charsJustRead: break
+       partialLine += charsJustRead
+       lines = partialLine.split(inputNewline)
+       partialLine = lines.pop()
+       for line in lines: yield line + outputNewline
+   if partialLine: yield partialLine
+# End of stolen fragment
+
+default_db = '{0}/.shatagdb'.format(os.environ['HOME'])
+
+parser = argparse.ArgumentParser( description='Receives output from "shatag -0" and records it in the local database ')
+parser.add_argument('-d','--database', metavar='DB', help='path to sqlite database (defaults to $HOME/.shatagdb)', default=default_db)
+parser.add_argument('-v','--verbose', action='store_true', help='report additions to the database')
+parser.add_argument('name', metavar='NAME', help='name of storage location (defaults to the hostname)')
+
+args = parser.parse_args()
+
+db = sqlite3.connect(args.database)
+
+c = db.cursor()
+try:
+        c.execute('create table contents(hash text, name text, path text, primary key(hash,name,path))')
+except sqlite3.OperationalError as e:
+        pass #table already created
+
+pattern = re.compile(b'([0-9a-f]{64})  (.*)')
+
+c.execute('delete from contents where name = ?', (args.name,))
+
+sys.stdout = sys.stdout.detach()
+sys.stdin = sys.stdin.detach()
+
+for entry in fileLineIter(sys.stdin, inputNewline=b'\0', outputNewline=b''):
+    match = pattern.match(entry)
+    if match is not None:
+        (hash, filename) = match.group(1,2)
+        if args.verbose:
+                sys.stdout.write(hash)
+                sys.stdout.write(b"  ")
+                sys.stdout.write(filename)
+        c.execute('insert into contents(hash,name,path) values(?,?,?)',
+                        (hash, args.name, filename))
+
+db.commit()
+db.close()
+
