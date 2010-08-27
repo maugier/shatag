@@ -54,7 +54,7 @@ except sqlite3.OperationalError as e:
 
 pattern = re.compile(b'([0-9a-f]{64})  (.*)')
 
-c.execute('select count(*) from contents')
+c.execute('select count(*) from contents where name = ?', (args.name,))
 old_rows = c.fetchone()[0]
 new_rows = 0
 c.execute('delete from contents where name = ?', (args.name,))
