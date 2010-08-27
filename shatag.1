@@ -8,7 +8,9 @@ shatag - tag files with their SHA-256 checksums
 .B shatag
 .nh
 [\fB\-fhlLqrtuv0\fR]
-[\fB\-D \fIDATABASE\fR]
+[\fB\-d \fIDATABASE\fR]
+[\fB\-n \fINAME\fR]
+[\fB\-R \fINAME\fR]...
 [\fIFILES\fR]...
 .hy
 
@@ -28,6 +30,19 @@ in the current directory. The output format is identical to the one of the
 .B sha256sum
 command.
 
+.IP "\fB\-0, \-\-null\fP"
+Instead of outputting one record per line (like
+.B sha256sum
+does,) separate records with null characters.
+
+.IP "\fB\-d \fIDATABASE\fR, \fB\-\-database \fIDATABASE\fP"
+Set the path of the SQLite database to query when checking for duplicates
+with
+.B "\-l" 
+or
+.B "\-L"
+.
+
 .IP "\fB\-f, \-\-force\fP"
 When running with
 .B -t
@@ -46,18 +61,28 @@ mark indicates that the file does not exist somewhere else, a
 .B "green ="
 that the file exists at one or several remote locations, and a
 .B "red +"
-that the file has more than one copy at any of the remote locations.
+that the file has a duplicate on the local system.
 
 .IP "\fB\-L, \-\-lookup\-verbose\fP"
 Instead of displaying the checksums, look them up against the local database.
 Print all the known remote locations for identical files.
 
+.IP "\fB\-n \fINAME\fR, \fB\-\-name \fINAME\fP"
+Name of local storage (defaults to canonical local host name). This needs to be correct if
+the local database contains entries for this own host.
+
 .IP "\fB\-q, \-\-quiet\fP"
 Do not display the valid checksums found by the tool.
 
-
 .IP "\fB\-r, \-\-recursive\fP"
 Recurse trough subdirectories
+
+.IP "\fB\-R \fINAME\fR, \fB\-\-remote \fINAME\fP"
+When using
+.B \-l
+or
+.B \-L
+, This is used to restrict the set of remote names to consider. If present, other storages will be ignored.
 
 .IP "\fB\-t, \-\-tag\fP"
 Compute new checksums for files that don't have one, or when it is outdated.
@@ -73,21 +98,6 @@ cases, use
 .IP "\fB\-v, \-\-verbose\fP"
 Report encoutered files that have an outated or missing checksum.
 
-.IP "\fB\-0, \-\-null\fP"
-Instead of outputting one record per line (like
-.B sha256sum
-does,) separate records with null characters.
-
-
-.IP "\fB\-d \fIDATABASE\fR, \fB\-\-database \fIDATABASE\fP"
-Set the path of the SQLite database to query when checking for duplicates
-with
-.B "\-l" 
-or
-.B "\-L"
-.
-
-
 .SH BUGS
 Support for non-ASCII filenames across systems of different and/or inconsistent encodings have not been fully tested.
 
@@ -97,4 +107,4 @@ Not all option combinations are sensible.
 Report shatag bugs to the bugtracker at http://bitbucket.org/maugier/shatag,
 
 .SH "SEE ALSO"
-shatag-mkdb(1)
+shatag-add(1), shatag-mkdb(1)
