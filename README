@@ -19,99 +19,24 @@ USAGE
 support for user extended attributes. This is typically enabled by adding the user_xattr
 mount option to the appropriate filesystem in /etc/fstab.
 
-Summary of tools:
 
-* shatag [-t|-u] [-fqvr0] FILES...
-* shatag-mkdb [-v] [-d DATABASE] [-n NAME] HOST PATH
-* shatag [-l|-L] [-d DATABASE] FILES...
+SUMMARY OF TOOLS
+
+  shatag(1) is the main tool, and used for computing and displaying file checksums,
+as well as reporting duplicate.
+
+  shatag-add(1) processes the output of shatag(1) and stores it in a sqlite database.
+the database is used by shatag(1) afterwards to detect duplicates.
   
+  shatag-mkdb(1) is a wrapper to collect checksums from a remote host. It is roughly
+equivalent to calling
 
-LOCAL USAGE
+  ssh <hostname> shatag -rc0 <path> |shatag-add <hostname>
 
-  A file checksum can be in three states: Missing (there is no checksum and never was), Invalid
-(there is a checksum but the file has been modified since it was computed), and Valid (there
-is a checksum and the file modification time has not changed.)
-
-  Operation Modes:
-
-  With no arguments, shatag will display all the Valid checksums for the specified files, in
-a format compatible with the sha256sum(1) tool. If no files are specified, all non-hidden
-files in the current directory are checked.
-
-  When in tag (-t or --tag) mode, shatag will first recompute a checksum for all the files
-not in a Valid state. You are guaranteed to get a correct checksum for every file, unless
-a file was maliciously modified and its mtime altered to hide the modification.
-
-  When in update (-u or --update) mode, shatag will first recompute all the Invalid
-checksums for the requested files. Files for which the checksum is Missing are ignored.
-
-  For the update and tag mode, files have to be provided explicitly; an empty file list
-raises an error.
-
-  Options:
-
-   -f,--force: when using --tag or --update, ignore the checksum timestamp; all Valid
-               timestamps are considered Invalid when deciding if they must be recomputed.
-
-   -q,--quiet: do not output the valid checksums on stdout
-
-   -v,--verbose: print information about missing or outdated checksums on stderr.
-
-   -r,--recursive: recurse trough directories
-
-   -0,--print0: when printing valid checksums, use NUL as record separator, instead of LF.
-                This is useful if you have filenames with LF characters in them, and
-                want to pipe the output to another program like xargs(1)
+  Refer to the man pages of these tools for more information.
 
 
-If -t or -u are used, giving file names is mandatory. Otherwise, if no files are given,
-it applies to all non-hidden files of the current directory.
-
-REMOTE USAGE
-
-the shatag-mkdb(1) tool can be used to collect checksums from remote filesystems over ssh.
-These checksums are stored in an sqlite database; the shatag tool can then use this database
-to lookup remote duplicates.
-
-  First, use shatag-mkdb to collect checksums from a remote host:
-
-* shatag-mkdb [-vf] [-t|-u] [-d DATABASE] [-n NAME] HOST PATH
-
-  -v,--verbose: Report the paths and checksums found to stdout, in the habitual format (compatible
-                  with sha256sum)
-
-  -t,--tag    : These options will be passed to shatag when running on the remote host.
-  -u,--update
-
-  -n,--name NAME:  location name, that will be used by the lookup tools. Defaults to the hostname.
-  
-  -d,--database FILE: path to sqlite database (defaults to $HOME/.shatagdb)
-
-  HOST: host accessible via ssh. This is provided to ssh verbatim (you can use USER@HOST notation)
-
-  PATH: a location on the remote host, that will be recursively explored by shatag.
-
-  -d,--database: database file (defaults to $HOME/.shatagdb)
-  -n,--name: names to include in comparison (defaults to all)
-
-  Then use shatag to do the lookups:
-
-* shatag [options...] [-l|-L] [-d DATABASE] FILES...
-
-  -l,--lookup: Look up files against the database and display a file list along with their status. Each file name
-is displayed on a line, along with a color and prefix symbol.
-
-  a yellow file, with "- " prefix, was not found in the database of remote files
-  a green file, with "= " prefix, was found at exactly one place in the remote database
-  a red file, with "+ " prefix, was found at many different places in the remote database.
-
-  -L,--lookup-verbose: Look up files against the database, and report the location names and paths
-  for identical files.
-
-  Most options documented in LOCAL USAGE (-t,-u,-v,-f,-0,-r) retain their meaning when querying the local database.
-
-
-TECHNICAL DETAILS:
+TECHNICAL DETAILS
 
   shatag stores a single sha256 checksum in hexadecimal (64 ascii characters) in the "shatag.sha256" attribute,
 and the modification time of the file at the moment the checksum was computed, as decimal unix time, in "shatag.ts".
