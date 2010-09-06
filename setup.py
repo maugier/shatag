@@ -5,4 +5,4 @@ setup(name='shatag',
       author = 'Maxime Augier',
       author_email = 'max@xolus.net',
       url = 'http://bitbucket.org/maugier/shatag',
-      scripts = ['shatag', 'shatag-add'])
+      scripts = ['shatag', 'shatag-add', 'shatag-mkdb'])
