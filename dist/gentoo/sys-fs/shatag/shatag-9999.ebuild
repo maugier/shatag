@@ -16,7 +16,9 @@ SLOT="0"
 KEYWORDS="~amd64"
 IUSE=""
 
-DEPEND=""
+DEPEND="dev-python/pyxattr
+	    dev-python/argparse
+        dev-lang/python[sqlite]"
 RDEPEND="${DEPEND}"
 
 DOCS="README"
