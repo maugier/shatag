@@ -3,6 +3,7 @@
 # $Header: $
 
 EAPI=3
+PYTHON_DEPEND="3"
 
 inherit distutils mercurial
 
@@ -19,9 +20,13 @@ DEPEND=""
 RDEPEND="${DEPEND}"
 
 DOCS="README"
+S="${WORKDIR}/shatag"
+
+pkg_setup() {
+	python_set_active_version 3
+}
 
 src_install() {
 	distutils_src_install
 	doman man/*.?
-
 }
