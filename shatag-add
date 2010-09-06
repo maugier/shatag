@@ -40,9 +40,13 @@ default_db = '{0}/.shatagdb'.format(os.environ['HOME'])
 parser = argparse.ArgumentParser( description='Receives output from "shatag -0" and records it in the local database ')
 parser.add_argument('-d','--database', metavar='DB', help='path to sqlite database (defaults to $HOME/.shatagdb)', default=default_db)
 parser.add_argument('-v','--verbose', action='store_true', help='report additions to the database')
+parser.add_argument('-b', '--base', metavar='PATH', help='base path getting processed (for deletion of older entries)', default='/')
 parser.add_argument('name', metavar='NAME', help='name of storage location (defaults to the hostname)')
 
 args = parser.parse_args()
+
+if args.base[-1] != '/':
+    args.base += '/'
 
 db = sqlite3.connect(args.database)
 
@@ -54,10 +58,10 @@ except sqlite3.OperationalError as e:
 
 pattern = re.compile(b'([0-9a-f]{64})  (.*)')
 
-c.execute('select count(*) from contents where name = ?', (args.name,))
+c.execute('select count(*) from contents where name = :name and substr(path,1,length(:base)) like :base', {'name': args.name, 'base': args.base})
 old_rows = c.fetchone()[0]
 new_rows = 0
-c.execute('delete from contents where name = ?', (args.name,))
+c.execute('delete from contents where name = :name and substr(path,1,length(:base)) = :base', {'name': args.name, 'base': args.base})
 
 sys.stdout = sys.stdout.detach()
 sys.stdin = sys.stdin.detach()
