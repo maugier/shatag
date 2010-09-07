@@ -3,39 +3,14 @@
 # Distributed under the terms of the GNU General Public License
 
 import argparse
-import hashlib
+#import hashlib
 import os
 import os.path
-import socket
-import sqlite3
+#import socket
+#import sqlite3
+import shatag
 import sys
-import xattr
-
-wbuf = sys.stdout.buffer
-
-def cs(dupe,rem):
-    if dupe: return b'\x1b[31;1m+ '
-    if rem: return b'\x1b[32;1m= '
-    return b'\x1b[33;1m- '
-
-def chost():
-    (canonical,aliases,addresses) = socket.gethostbyaddr(socket.gethostname())
-    return canonical
-
-def hashfile (filename):
-    bs=4096
-    sha256 = hashlib.sha256()
-    with open(filename, 'rb') as fd:    
-        while True:
-            data = fd.read(bs)
-            if not data:
-                break
-            sha256.update(data)
-
-    return sha256.hexdigest().encode('ascii')
-
-
-default_db = '{0}/.shatagdb'.format(os.environ['HOME'])
+#import xattr
 
 parser = argparse.ArgumentParser( description='Display and update xattr-based checksums.')
 parser.add_argument('-c','--canonical', action='store_true', help='Output canonical file names.')
@@ -48,116 +23,12 @@ parser.add_argument('-r','--recursive', action='store_true', help='inspect direc
 parser.add_argument('-0','--null', action='store_true', help='separate output records with NULLs instead of newlines')
 parser.add_argument('-l','--lookup', action='store_true', help='look up files in the database, color/symbol-code them')
 parser.add_argument('-L','--lookup-verbose', action='store_true', help='verbosely list duplicate locations')
-parser.add_argument('-d','--database', metavar='DB', help='database path for -l/-L mode', default=default_db)
-parser.add_argument('-n','--name', metavar='NAME', help='name of local storage for -l/-L mode', default=chost())
+parser.add_argument('-d','--database', metavar='DB', help='database path for -l/-L mode')
+parser.add_argument('-n','--name', metavar='NAME', help='name of local storage for -l/-L mode')
 parser.add_argument('-R','--remote', metavar='NAME', action='append', help='remote storage to consider for -r/-R mode')
 parser.add_argument('files', metavar='FILE', nargs='*', help='files to checksum')
 
 args = parser.parse_args()
-
-class ShatagFile:
-    def __init__(self, filename):
-        self.filename = filename 
-
-        self.mtime = int(os.stat(filename).st_mtime)
-
-        lsattr = xattr.listxattr(filename)
-
-        self.ts = None
-        self.shatag = None
-
-        try:
-            self.ts = int(xattr.getxattr(filename, 'user.shatag.ts'))
-            self.shatag = xattr.getxattr(filename, 'user.shatag.sha256')
-        except IOError as e:
-            if e.errno != 61:  # No data available
-                raise
-
-
-        if self.mtime == self.ts:
-            self.state = 'good'
-        elif self.ts is None:      
-            self.state = 'missing'
-        else:
-            self.state = 'bad'
-
-    def printable(self):
-        return self.filename.decode(sys.getfilesystemencoding(), 'surrogateescape')
-            
-    def fullpath(self):
-        return os.path.abspath(self.filename)
-
-    def update(self):
-        if self.state == 'bad': 
-            self.rehash()
-
-    def tag(self):
-        if self.state == 'missing' or self.state == 'bad':
-            self.rehash()
-
-    def show(self,end=b'\n',db=None):
-        if self.state == 'good':
-            wbuf.write(self.shatag)
-            wbuf.write(b'  ')
-            if args.canonical:
-                wbuf.write(self.fullpath())
-            else:
-                wbuf.write(self.filename)
-            wbuf.write(end)
-
-    def lookup(self,db):
-        if self.state != 'good':
-            return
-
-        db.execute('select name, path from contents where hash=?', (self.shatag,))
-        wbuf.write(self.filename)
-        wbuf.write(b':\n')
-        for (name,path) in db:
-          if args.remote is not None and name not in args.remote:
-            continue
-          wbuf.write(b'\t')
-          wbuf.write(name.encode())
-          wbuf.write(b':')
-          wbuf.write(path)
-          wbuf.write(b'\n')
-
-
-    def lookupshort(self,db):
-
-        if self.state != 'good':
-            return
-
-        dupe=False
-        rem=False
-
-        db.execute('select name, path from contents where hash=?', (self.shatag,))
-        for (name, path) in db:
-            if name == args.name:
-                if path != self.fullpath():
-                    dupe=True
-            else:
-                if args.remote is None or name in args.remote:
-                    rem=True
-
-        wbuf.write(cs(dupe,rem))
-        wbuf.write(self.filename)
-        wbuf.write(b'\x1b[0m\n')
-
-
-    def verbose(self):
-        if self.state == 'missing':
-            print('<missing>  {0}'.format(self.printable()), file=sys.stderr)
-        if self.state == 'bad':
-            print('<outdated>  {0}'.format(self.printable()), file=sys.stderr)
-
-
-    def rehash(self):
-        self.ts = self.mtime
-        newsum = hashfile(self.filename)
-        self.shatag = newsum
-        xattr.setxattr(self.filename, 'user.shatag.sha256', newsum)
-        xattr.setxattr(self.filename, 'user.shatag.ts', str(self.mtime))
-        self.state = 'good'
 
 
 if args.files == []:
@@ -177,28 +48,26 @@ if (args.quiet and args.null):
 
 unsupported = False
 
-end = args.null and b'\0' or b'\n'
-
-cur = None
+end = args.null and '\0' or '\n'
+store = None
 
 if args.lookup or args.lookup_verbose:
-    db = sqlite3.connect(args.database)
-    cur = db.cursor()
+    store = shatag.Store(name=args.name, url=args.database)
 
 def process(filename):
     try:
 
         if args.recursive:
             if os.path.isdir(filename) and not os.path.islink(filename):
-                [ process(os.path.join(filename, e)) for e in os.listdir(filename) if not e.startswith(b'.') ]
+                [ process(os.path.join(filename, e)) for e in os.listdir(filename) if not e.startswith('.') ]
                 return
 
         else:
             if not os.path.isfile(filename) and not args.recursive:
-                print ('shatag: Warning: {0} is not a file'.format(filename.decode()), file=sys.stderr)
+                print ('shatag: Warning: {0} is not a file'.format(filename), file=sys.stderr)
                 return
 
-        file = ShatagFile(filename)
+        file = shatag.File(filename)
         if args.verbose:
             file.verbose()
 
@@ -212,13 +81,16 @@ def process(filename):
             file.tag()
 
         if not (args.quiet or args.lookup or args.lookup_verbose):
-            file.show(end)
+            try:
+                print(file.show(), end=end)
+            except shatag.NoChecksum:
+                pass
 
         if args.lookup:
-            file.lookupshort(cur)
+            print(store.lookup(file).pretty())
 
         if args.lookup_verbose:
-            file.lookup(cur)
+            r = store.lookup(file)
 
     except IOError as e:
         print ('shatag: "{0}": IOError {1}: {2}'.format(filename.decode(), e.errno, e.strerror), file=sys.stderr) 
@@ -230,7 +102,7 @@ def process(filename):
         print ('shatag: {0}'.format(e), file=sys.stderr)
 
 for filename in args.files:
-    process(filename.encode(sys.getfilesystemencoding(), 'surrogateescape'))
+    process(filename)
 
 if unsupported:
     print ('shatag: Did you forget to enable user_xattr ?', file=sys.stderr)
