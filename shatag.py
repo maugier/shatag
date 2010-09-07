@@ -27,6 +27,8 @@ def hashfile (filename):
 
     return sha256.hexdigest()
 
+class NoChecksum(Exception):
+    pass
 
 class File:
     def __init__(self, filename, db=None):
@@ -71,11 +73,11 @@ class File:
         if self.state == 'missing' or self.state == 'bad':
             self.rehash()
 
-    def show(self, canonical=False, end='\n'):
+    def show(self, canonical=False):
         if self.state == 'good':
-            return self.shatag + '  ' + self.path(canonical) + end
+            return self.shatag + '  ' + self.path(canonical)
         else:
-            return ''
+            raise NoChecksum()
 
 
     def verbose(self, canonical=False):
@@ -128,7 +130,7 @@ class Store:
         remote = list()
 
         if file.state != 'good':
-            return None 
+            raise NoChecksum()
 
         self.cursor.execute('select name,path from contents where hash=?',
             (file.shatag, ))
@@ -139,10 +141,30 @@ class Store:
                 if path != file.fullpath():
                     local.append((name,path))
 
-        return dict(remote=remote, local=local) 
+        return StoreResult(file, remote, local) 
 
     def commit(self):
         self.db.commit()
 
+class StoreResult:
+    def __init__(self,file,remote,local):
+        self.file = file
+        self.remote = remote
+        self.local = local
 
+        if self.local:
+            self.status = 2
+        elif self.remote:
+            self.status = 1
+        else:
+            self.status = 0
 
+    def pretty():
+        prefix = '\x1b[33;1m- '
+        if self.status == 2:
+            prefix = '\x1b[31;1m+ '
+        elif self.status == 1:
+            prefix = '\x1b[32;1m= '
+
+        return prefix + self.file.filename
+        
