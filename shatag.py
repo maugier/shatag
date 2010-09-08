@@ -122,7 +122,10 @@ class Store:
         return self.cursor.rowcount
 
     def put(self, file):
-        self.cursor.execute('insert into contents(hash,name,path) values(?,?,?)', (file.shatag, self.name, file.fullpath()))
+        self.record(self.name, file.fullpath(), file.shatag)
+
+    def record(self, name, path, tag):
+        self.cursor.execute('insert into contents(hash,name,path) values(?,?,?)', (tag, name, path))
 
     def lookup(self, file):
 
@@ -146,6 +149,9 @@ class Store:
     def commit(self):
         self.db.commit()
 
+    def rollback(self):
+        self.db.rollback()
+
 class StoreResult:
     def __init__(self,file,remote,local):
         self.file = file
@@ -159,7 +165,7 @@ class StoreResult:
         else:
             self.status = 0
 
-    def pretty():
+    def pretty(self):
         prefix = '\x1b[33;1m- '
         if self.status == 2:
             prefix = '\x1b[31;1m+ '

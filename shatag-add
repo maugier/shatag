@@ -2,17 +2,16 @@
 # Copyright 2010 Maxime Augier
 # Distributed under the terms of the GNU General Public License
 
-
 import argparse
 import os
 import re
+import shatag
 import subprocess
-import sqlite3
 import sys
 
 # fileLineIter, stolen from Douglas Alan
 def fileLineIter(inputFile,
-                 inputNewline=b"\n",
+                 inputNewline="\n",
                  outputNewline=None,
                  readSize=8192):
    """Like the normal file iter but you can set what string indicates newline.
@@ -24,7 +23,7 @@ def fileLineIter(inputFile,
    something like "os.popen('find -print0')".
    """
    if outputNewline is None: outputNewline = inputNewline
-   partialLine = b''
+   partialLine = ''
    while True:
        charsJustRead = inputFile.read(readSize)
        if not charsJustRead: break
@@ -35,10 +34,8 @@ def fileLineIter(inputFile,
    if partialLine: yield partialLine
 # End of stolen fragment
 
-default_db = '{0}/.shatagdb'.format(os.environ['HOME'])
-
 parser = argparse.ArgumentParser( description='Receives output from "shatag -0" and records it in the local database ')
-parser.add_argument('-d','--database', metavar='DB', help='path to sqlite database (defaults to $HOME/.shatagdb)', default=default_db)
+parser.add_argument('-d','--database', metavar='DB', help='path to sqlite database (defaults to $HOME/.shatagdb)')
 parser.add_argument('-v','--verbose', action='store_true', help='report additions to the database')
 parser.add_argument('-b', '--base', metavar='PATH', help='base path getting processed (for deletion of older entries)', default='/')
 parser.add_argument('name', metavar='NAME', help='name of storage location (defaults to the hostname)')
@@ -48,37 +45,27 @@ args = parser.parse_args()
 if args.base[-1] != '/':
     args.base += '/'
 
-db = sqlite3.connect(args.database)
+store = shatag.Store(url=args.database,name=args.name)
 
-c = db.cursor()
-try:
-        c.execute('create table contents(hash text, name text, path text, primary key(hash,name,path))')
-except sqlite3.OperationalError as e:
-        pass #table already created
-
-pattern = re.compile(b'([0-9a-f]{64})  (.*)')
+pattern = re.compile('([0-9a-f]{64})  (.*)')
 
 new_rows = 0
-c.execute('delete from contents where name = :name and substr(path,1,length(:base)) like :base', {'name': args.name, 'base': args.base})
-old_rows = c.rowcount
+old_rows = store.clear(args.base)
 
-sys.stdout = sys.stdout.detach()
-sys.stdin = sys.stdin.detach()
-
-for entry in fileLineIter(sys.stdin, inputNewline=b'\0', outputNewline=b''):
+for entry in fileLineIter(sys.stdin, inputNewline='\0', outputNewline=''):
     match = pattern.match(entry)
     if match is not None:
         (hash, filename) = match.group(1,2)
         if args.verbose:
-                sys.stdout.write(hash)
-                sys.stdout.write(b"  ")
-                sys.stdout.write(filename)
-                sys.stdout.write(b'\n')
+                print("{0}  {1}\n".format(hash, filename))
         new_rows += 1
-        c.execute('insert into contents(hash,name,path) values(?,?,?)',
-                        (hash, args.name, filename))
+        store.record(args.name, filename, hash)
 
-db.commit()
-db.close()
+if new_rows > 0:
+    store.commit()
 
-print('{0} rows added, {1} rows deleted ({2})'.format(new_rows, old_rows, new_rows - old_rows), file=sys.stderr)
+    print('{0} rows added, {1} rows deleted ({2})'.format(new_rows, old_rows, new_rows - old_rows), file=sys.stderr)
+
+else:
+    store.rollback()
+    print('No records received, preserving old database.',file=sys.stderr)

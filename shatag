@@ -3,14 +3,10 @@
 # Distributed under the terms of the GNU General Public License
 
 import argparse
-#import hashlib
 import os
 import os.path
-#import socket
-#import sqlite3
 import shatag
 import sys
-#import xattr
 
 parser = argparse.ArgumentParser( description='Display and update xattr-based checksums.')
 parser.add_argument('-c','--canonical', action='store_true', help='Output canonical file names.')
@@ -80,17 +76,21 @@ def process(filename):
         if args.tag:
             file.tag()
 
-        if not (args.quiet or args.lookup or args.lookup_verbose):
-            try:
-                print(file.show(), end=end)
-            except shatag.NoChecksum:
-                pass
+        try:
+            if not (args.quiet or args.lookup or args.lookup_verbose):
+                print(file.show(canonical = args.canonical), end=end)
 
-        if args.lookup:
-            print(store.lookup(file).pretty())
+            if args.lookup:
+                print(store.lookup(file).pretty())
 
-        if args.lookup_verbose:
-            r = store.lookup(file)
+            if args.lookup_verbose:
+                r = store.lookup(file)
+                print ("{0}:".format(file.path(canonical=args.canonical)))
+                for (name,path) in (r.local + r.remote):
+                    print("\t{0}:{1}".format(name,path))
+
+        except shatag.NoChecksum:
+            pass
 
     except IOError as e:
         print ('shatag: "{0}": IOError {1}: {2}'.format(filename.decode(), e.errno, e.strerror), file=sys.stderr) 
