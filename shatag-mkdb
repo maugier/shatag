@@ -19,7 +19,7 @@ parser.add_argument('-t','--tag', action='store_true', help='run remote shatag i
 parser.add_argument('-u','--update', action='store_true', help='run remote shatag in update mode (see shatag help)')
 parser.add_argument('-v','--verbose', action='store_true', help='report additions to the database')
 parser.add_argument('-n','--name', help='name of storage location (defaults to the hostname)')
-parser.add_argument('host', metavar='HOST', help='remote host name')
+parser.add_argument('host', metavar='HOST', help='remote host name. Use "localhost" to index local files.')
 parser.add_argument('path', metavar='PATH', help='path to index on remote host')
 
 args = parser.parse_args()
@@ -28,9 +28,15 @@ if (args.name is None):
     #TODO: Call ssh to figure hostname remotely
     args.name = args.host
 
-sshargs = ["ssh", args.host, "shatag", "-cr0"]
+sshargs = []
+if args.host != 'localhost':
+    sshargs = ["ssh", args.host]
+
+sshargs += ["shatag", "-cr0"]
+
 if args.tag:
     sshargs.append("-t")
+
 if args.update:
     sshargs.append("-u")
 
