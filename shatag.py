@@ -9,6 +9,7 @@ import os.path
 import socket
 import sqlite3
 import sys
+import yaml
 import xattr
 
 def chost():
@@ -174,3 +175,16 @@ class StoreResult:
 
         return prefix + self.file.filename + "\x1b[0m"
         
+
+class Config:
+    def __init__(self):
+
+        self.database = None
+
+        with open('~/.shatagrc','r') as f:
+            d = yaml.load(f)
+
+            if 'database' in d:
+                self.database = d['database']
+      
+
