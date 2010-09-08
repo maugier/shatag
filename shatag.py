@@ -172,5 +172,5 @@ class StoreResult:
         elif self.status == 1:
             prefix = '\x1b[32;1m= '
 
-        return prefix + self.file.filename
+        return prefix + self.file.filename + "\x1b[0m"
         
