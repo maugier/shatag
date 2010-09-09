@@ -93,7 +93,7 @@ def process(filename):
             pass
 
     except IOError as e:
-        print ('shatag: "{0}": IOError {1}: {2}'.format(filename.decode(), e.errno, e.strerror), file=sys.stderr) 
+        print ('shatag: "{0}": IOError {1}: {2}'.format(filename, e.errno, e.strerror), file=sys.stderr) 
         if e.errno == 32:
             raise
         if e.errno == 95:
