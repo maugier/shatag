@@ -14,12 +14,11 @@ EHG_REPO_URI="http://bitbucket.org/maugier/shatag"
 LICENSE="GPL-3"
 SLOT="0"
 KEYWORDS="~amd64"
-IUSE="pgsql"
+IUSE=""
 
 DEPEND="dev-python/pyxattr
 	    dev-python/argparse
-        dev-lang/python[sqlite]
-		pgsql? ( dev-python/psycopg:2 )"
+        dev-lang/python[sqlite]"
 RDEPEND="${DEPEND}"
 
 DOCS="README"
