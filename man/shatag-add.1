@@ -1,0 +1,39 @@
+.TH shatag-add 1 26.08.2010 "Shatag 0.1" "Shatag"
+
+.SH NAME
+
+shatag-add - add checksums to the local database for further procressing.
+
+.SH SYNOPSIS
+.B shatag-add
+.nh
+[\fB\-v\fR]
+[\fB\-d \fIDATABASE\fR]
+\fINAME\fR
+.hy
+
+.SH DESCRIPTION
+.B shatag-add
+processes the output of \fBshatag\fR(1) to fill the local database. \fINAME\fR
+is the symbolical name of the storage on which the file reside (recommended
+to be the canonical hostname).
+
+If the operation succeeds, previous entries for the specified name are removed from the database.
+
+When running \fBshatag\fR(1) to send data to \fBshatag-add\fR, always use the
+\fB\-0\fR and \fB-c\fR options. Not using \fB\-0\fR will result in a garbled database;
+Not using \fB\-c\fR may yield false positives when looking for duplicates.
+
+.SH OPTIONS
+
+
+.IP "\fB\-d \fIDATABASE\fR, \fB\-\-database \fIDATABASE\fP"
+Use an alternate localtion for the SQLite database. The default
+is "$HOME/.shatagdb".
+
+
+.SH "REPORTING BUGS"
+Report shatag bugs to the bugtracker at http://bitbucket.org/maugier/shatag,
+
+.SH "SEE ALSO"
+shatag(1), shatag-mkdb(1)
