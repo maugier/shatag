@@ -59,7 +59,7 @@ def process(filename):
                 return
 
         else:
-            if not os.path.isfile(filename) and not args.recursive:
+            if not os.path.isfile(filename) :
                 print ('shatag: Warning: {0} is not a file'.format(filename), file=sys.stderr)
                 return
 
