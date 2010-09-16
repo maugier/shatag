@@ -1,0 +1,57 @@
+
+OVERVIEW
+
+  Shatag is a tool for computing and caching file checksums, and do
+"remote de-duplication" -- an efficient way to discover which files exist,
+or are duplicates, on remote servers. It relies on the SHA-256 algorithm
+to find duplicates, and will use filesystem extended attributes to cache
+the checksum values.
+
+  Shatag is currently written for Python 3, and requires the pyxattr
+(http://pyxattr.sourceforge.net) and argparse (http://code.google.com/p/argparse/) packages.
+
+  If you want to use the remote modes, you'll need sqlite3 as well.
+
+
+USAGE
+
+  Before you attempt to use shatag, make sure the filesystem you will be working on has
+support for user extended attributes. This is typically enabled by adding the user_xattr
+mount option to the appropriate filesystem in /etc/fstab.
+
+
+SUMMARY OF TOOLS
+
+  shatag(1) is the main tool, and used for computing and displaying file checksums,
+as well as reporting duplicate.
+
+  shatag-add(1) processes the output of shatag(1) and stores it in a sqlite database.
+the database is used by shatag(1) afterwards to detect duplicates.
+  
+  shatag-mkdb(1) is a wrapper to collect checksums from a remote host. It is roughly
+equivalent to calling
+
+  ssh <hostname> shatag -rc0 <path> |shatag-add <hostname>
+
+  Refer to the man pages of these tools for more information.
+
+
+TECHNICAL DETAILS
+
+  shatag stores a single sha256 checksum in hexadecimal (64 ascii characters) in the "shatag.sha256" attribute,
+and the modification time of the file at the moment the checksum was computed, as decimal unix time, in "shatag.ts".
+
+ The checksum is considered valid if the modification time of the file is still equal to the timestamp stored in the attribute.
+With respect to race conditions, shatag will always read the stored timestamp before the checksum, and the checksum before
+the actual mtime; it will always write the checksum before the timestamp. In case of accidental parallel operation, shatag
+will rather compute unneccesary checksums than consider an old checksum valid.
+
+  The local sqlite database contains a single table:
+  
+  create table contents(text hash, text name, text path, primary key (hash,name,path))
+
+  When querying the database, shatag will lookup the hash and count the matching paths at each location. The file will
+be considered a dupe if any location has the file more than once.
+
+TODO: 
+    * Fix probable encoding quirks for filenames
