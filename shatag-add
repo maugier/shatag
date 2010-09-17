@@ -38,7 +38,7 @@ parser = argparse.ArgumentParser( description='Receives output from "shatag -0" 
 parser.add_argument('-d','--database', metavar='DB', help='path to sqlite database (defaults to $HOME/.shatagdb)')
 parser.add_argument('-v','--verbose', action='store_true', help='report additions to the database')
 parser.add_argument('-b', '--base', metavar='PATH', help='base path getting processed (for deletion of older entries)', default='/')
-parser.add_argument('name', metavar='NAME', help='name of storage location (defaults to the hostname)')
+parser.add_argument('name', metavar='NAME', help='name of storage location')
 
 args = parser.parse_args()
 
@@ -60,6 +60,8 @@ for entry in fileLineIter(sys.stdin, inputNewline='\0', outputNewline=''):
                 print("{0}  {1}\n".format(hash, filename))
         new_rows += 1
         store.record(args.name, filename, hash)
+    else:
+        print('Error: incorrectly formatted entry\n', file=sys.stderr)
 
 if new_rows > 0:
     store.commit()

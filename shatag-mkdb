@@ -6,6 +6,7 @@
 import argparse
 import os
 import re
+import shatag
 import subprocess
 import sqlite3
 import sys
@@ -31,6 +32,8 @@ if (args.name is None):
 sshargs = []
 if args.host != 'localhost':
     sshargs = ["ssh", args.host]
+else:
+    args.host = shatag.chost()
 
 sshargs += ["shatag", "-cr0"]
 
@@ -42,7 +45,7 @@ if args.update:
 
 sshargs.append(args.path)
 
-addargs = ["shatag-add", args.name]
+addargs = ["shatag-add", args.host, '-b', args.path]
 
 if args.database is not None:
     addargs += ['-d', args.database]
