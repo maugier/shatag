@@ -128,7 +128,7 @@ class Store:
     def record(self, name, path, tag):
         self.cursor.execute('insert into contents(hash,name,path) values(?,?,?)', (tag, name, path))
 
-    def lookup(self, file, remote=None):
+    def lookup(self, file, remotenames=None):
 
         local = list()
         remote = list()
@@ -140,7 +140,7 @@ class Store:
             (file.shatag, ))
         for (name, path) in self.cursor:
         
-            if (name in remote) or (remote is None and name != self.name):
+            if (remotenames is None and name != self.name) or name in remotenames:
                     remote.append((name,path))
             elif path != file.fullpath():
                 local.append((name,path))
