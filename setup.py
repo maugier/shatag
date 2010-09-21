@@ -6,4 +6,4 @@ setup(name='shatag',
       author_email = 'max@xolus.net',
       url = 'http://bitbucket.org/maugier/shatag',
       py_modules = ['shatag'],
-      scripts = ['shatag', 'shatag-add', 'shatag-mkdb'])
+      scripts = ['bin/shatag', 'bin/shatag-add', 'bin/shatag-mkdb'])
