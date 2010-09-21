@@ -1,0 +1,61 @@
+#!/usr/bin/env python3
+# Copyright 2010 Maxime Augier
+# Distributed under the terms of the GNU General Public License
+
+
+import argparse
+import os
+import re
+import shatag
+import subprocess
+import sqlite3
+import sys
+
+
+default_db = '{0}/.shatagdb'.format(os.environ['HOME'])
+
+parser = argparse.ArgumentParser( description='Fetches remote shatags over ssh and store it for remote inventory assessment.')
+parser.add_argument('-d','--database', metavar='DB', help='path to sqlite database (defaults to $HOME/.shatagdb)' )
+parser.add_argument('-t','--tag', action='store_true', help='run remote shatag in tag mode (see shatag help)')
+parser.add_argument('-u','--update', action='store_true', help='run remote shatag in update mode (see shatag help)')
+parser.add_argument('-v','--verbose', action='store_true', help='report additions to the database')
+parser.add_argument('-n','--name', help='name of storage location (defaults to the hostname)')
+parser.add_argument('host', metavar='HOST', help='remote host name. Use "localhost" to index local files.')
+parser.add_argument('path', metavar='PATH', help='path to index on remote host')
+
+args = parser.parse_args()
+
+if (args.name is None):
+    #TODO: Call ssh to figure hostname remotely
+    args.name = args.host
+
+sshargs = []
+if args.host != 'localhost':
+    sshargs = ["ssh", args.host]
+else:
+    args.host = shatag.chost()
+
+sshargs += ["shatag", "-cr0"]
+
+if args.tag:
+    sshargs.append("-t")
+
+if args.update:
+    sshargs.append("-u")
+
+sshargs.append(args.path)
+
+addargs = ["shatag-add", args.host, '-b', args.path]
+
+if args.database is not None:
+    addargs += ['-d', args.database]
+
+if args.verbose:
+    addargs.append('-v')
+
+print("Running {0} | {1}".format(sshargs,addargs), file=sys.stderr)
+
+shatag = subprocess.Popen(sshargs, stdout=subprocess.PIPE)
+adder = subprocess.Popen(addargs, stdin=shatag.stdout)
+
+adder.wait()
