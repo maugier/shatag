@@ -1,0 +1,16 @@
+RESTful API for the future shatag server:
+
+$URL is the service endpoint, https://example.com/shatag
+
+send a bunch of hashes:
+
+POST $URL/host/<hostname>
+Data: json document containing { hash => path, hash => path, ...}
+
+check if a hash exists:
+
+GET $URL/where/<hash>
+Data: list of hosts
+
+GET $URL/find/<hash>
+Data: document containing { host => path, host => path, ...}
