@@ -41,7 +41,7 @@ with
 .B "\-l" 
 or
 .B "\-L"
-.
+(The default path is $HOME/.shatagdb, overridable from the config file)
 
 .IP "\fB\-f, \-\-force\fP"
 When running with
@@ -97,6 +97,12 @@ cases, use
 
 .IP "\fB\-v, \-\-verbose\fP"
 Report encoutered files that have an outated or missing checksum.
+
+.SH FILES
+
+.TP
+~/.shatagrc
+YAML configuration file. Currently has only one possible configuration value, "database", which sets the database path (by default, ~/.shatagdb)
 
 .SH BUGS
 Support for non-ASCII filenames across systems of different and/or inconsistent encodings have not been fully tested.
