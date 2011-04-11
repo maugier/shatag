@@ -140,7 +140,8 @@ class Store:
             (file.shatag, ))
         for (name, path) in self.cursor:
         
-            if (remotenames is None and name != self.name) or name in remotenames:
+            if ((remotenames is None and name != self.name) or
+               (remotenames is not None and name in remotenames)):
                     remote.append((name,path))
             elif path != file.fullpath():
                 local.append((name,path))
