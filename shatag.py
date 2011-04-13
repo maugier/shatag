@@ -32,7 +32,9 @@ class NoChecksum(Exception):
     pass
 
 class File:
+    """Represents a checksummed file in the FS. Currently handles xattrs only."""
     def __init__(self, filename, db=None):
+        """Creates a file object. This will load the corresponding timestamp and xattrs from the filesystem."""
         self.filename = filename 
         self.db = db
         self.mtime = int(os.stat(filename).st_mtime)
@@ -58,23 +60,28 @@ class File:
             self.state = 'bad'
 
     def fullpath(self):
+        """Absolute path of the file object"""
         return os.path.abspath(self.filename)
 
     def path(self, canonical=False):
+        """If canonical is true, equivalent to fullpath, otherwise file name"""
         if canonical:
             return self.fullpath()
         else:
             return self.filename
 
     def update(self):
+        """Rehash the file only if there is an existing, outdated hash"""
         if self.state == 'bad': 
             self.rehash()
 
     def tag(self):
+        """Rehash the file if there is an outated hash or no hash at all"""
         if self.state == 'missing' or self.state == 'bad':
             self.rehash()
 
     def show(self, canonical=False):
+        """Show the hash and filename in sha256(1) compatible format"""
         if self.state == 'good':
             return self.shatag + '  ' + self.path(canonical)
         else:
@@ -82,6 +89,7 @@ class File:
 
 
     def verbose(self, canonical=False):
+        """Print warnings if the checksum is missing or outdated"""
         if self.state == 'missing':
             print('<missing>  {0}'.format(self.path(canonical)), file=sys.stderr)
         if self.state == 'bad':
@@ -89,6 +97,7 @@ class File:
 
 
     def rehash(self):
+        """Rehash the file and store the new checksum and timestamp"""
         self.ts = self.mtime
         newsum = hashfile(self.filename)
         self.shatag = newsum
@@ -96,17 +105,36 @@ class File:
         xattr.setxattr(self.filename, 'user.shatag.ts', str(self.mtime).encode('ascii'))
         self.state = 'good'
 
-class Store:
 
-    def __init__(self, url=None, name=None):
-
+def Store(url=None, name=None):
+        """Factory to build a store.
+        Arguments:
+        url -- URL of the http store, or local filename of sqlite database
+        name -- name of the local host when putting objets to store and to
+                differentiate local from remote dupes.
+        
+        """
         if url is None:
             url = '{0}/.shatagdb'.format(os.environ['HOME'])
+    
+        if url.startswith("http://"):
+            return HTTPStore(url, name)
+        else:
+            return LocalStore(url, name)
 
+class IStore:
+    def __init__(self, url=None, name=None):
         if name is None:
             name = chost()            
 
         self.name = name
+        self.url = url
+
+class LocalStore(IStore):
+
+    def __init__(self, url=None, name=None):
+        super().__init__(url, name)
+
         db = sqlite3.connect(url)
         self.db = db
 
@@ -153,6 +181,9 @@ class Store:
 
     def rollback(self):
         self.db.rollback()
+
+class HTTPStore:
+    pass
 
 class StoreResult:
     def __init__(self,file,remote,local):
