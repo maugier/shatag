@@ -182,9 +182,6 @@ class LocalStore(IStore):
     def rollback(self):
         self.db.rollback()
 
-class HTTPStore:
-    pass
-
 class StoreResult:
     def __init__(self,file,remote,local):
         self.file = file
