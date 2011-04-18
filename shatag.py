@@ -120,6 +120,9 @@ def Store(url=None, name=None):
         if url.startswith("http://") or url.startswith("https://"):
             from shatag.couchdb import CouchStore
             return CouchStore(url, name)
+        elif url.startswith("pg:"):
+            from shatag.pg import PgStore
+            return PgStore(url, name)
         else:
             return LocalStore(url, name)
 
@@ -183,6 +186,8 @@ class LocalStore(SQLStore):
 
         cursor = self.db.cursor()
         self.cursor = cursor
+
+        super().__init__(url, name)
 
         try:
             cursor.execute('create table contents(hash text, name text, path text, primary key(hash,name,path))')
