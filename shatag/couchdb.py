@@ -20,9 +20,6 @@ class CouchStore(IStore):
     def clear(self, base='/'):
     	pass
 
-    def put(self, file):
-        self.record(self.name, file.fullpath(), file.shatag)
-
     def record(self, name, path, tag):
         self.db.save({'hash':tag, 'name':name, 'path':path})
 

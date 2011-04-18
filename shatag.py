@@ -118,7 +118,7 @@ def Store(url=None, name=None):
             url = '{0}/.shatagdb'.format(os.environ['HOME'])
     
         if url.startswith("http://") or url.startswith("https://"):
-	    from shatag.couchdb import CouchStore
+            from shatag.couchdb import CouchStore
             return CouchStore(url, name)
         else:
             return LocalStore(url, name)
@@ -131,11 +131,53 @@ class IStore:
         self.name = name
         self.url = url
 
-class LocalStore(IStore):
+    def put(self, file):
+        self.record(self.name, file.fullpath(), file.shatag)
+
+    def lookup(self, file, remotenames=None):
+        local = list()
+        remote = list()
+
+        if file.state != 'good':
+            raise NoChecksum()
+
+        for (name, path) in self.fetch(file.shatag):
+        
+            if ((remotenames is None and name != self.name) or
+               (remotenames is not None and name in remotenames)):
+                    remote.append((name,path))
+            elif path != file.fullpath():
+                local.append((name,path))
+
+        return StoreResult(file, remote, local) 
+
+
+class SQLStore(IStore):
 
     def __init__(self, url=None, name=None):
         super().__init__(url, name)
 
+
+    def clear(self, base='/'):
+        self.cursor.execute('delete from contents where name = :name and substr(path,1,length(:base)) like :base', {'name': self.name, 'base': base})
+        return self.cursor.rowcount
+
+
+    def record(self, name, path, tag):
+        self.cursor.execute('insert into contents(hash,name,path) values(?,?,?)', (tag, name, path))
+
+    def fetch(self,hash):
+        self.cursor.execute('select name,path from contents where hash=?', (hash,))
+        return self.cursor
+
+    def commit(self):
+        self.db.commit()
+
+    def rollback(self):
+        self.db.rollback()
+
+class LocalStore(SQLStore):
+    def __init__(self, url=None, name=None):
         db = sqlite3.connect(url)
         self.db = db
 
@@ -146,42 +188,6 @@ class LocalStore(IStore):
             cursor.execute('create table contents(hash text, name text, path text, primary key(hash,name,path))')
         except sqlite3.OperationalError as e:
             pass #table already created
-
-    def clear(self, base='/'):
-        self.cursor.execute('delete from contents where name = :name and substr(path,1,length(:base)) like :base', {'name': self.name, 'base': base})
-        return self.cursor.rowcount
-
-    def put(self, file):
-        self.record(self.name, file.fullpath(), file.shatag)
-
-    def record(self, name, path, tag):
-        self.cursor.execute('insert into contents(hash,name,path) values(?,?,?)', (tag, name, path))
-
-    def lookup(self, file, remotenames=None):
-
-        local = list()
-        remote = list()
-
-        if file.state != 'good':
-            raise NoChecksum()
-
-        self.cursor.execute('select name,path from contents where hash=?',
-            (file.shatag, ))
-        for (name, path) in self.cursor:
-        
-            if ((remotenames is None and name != self.name) or
-               (remotenames is not None and name in remotenames)):
-                    remote.append((name,path))
-            elif path != file.fullpath():
-                local.append((name,path))
-
-        return StoreResult(file, remote, local) 
-
-    def commit(self):
-        self.db.commit()
-
-    def rollback(self):
-        self.db.rollback()
 
 class StoreResult:
     def __init__(self,file,remote,local):
