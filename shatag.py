@@ -227,7 +227,7 @@ class Config:
 
         self.database = None
 
-        with open('~/.shatagrc','r') as f:
+        with open('{0}/.shatagrc'.format(os.environ['HOME']),'r') as f:
             d = yaml.load(f)
 
             if 'database' in d:
