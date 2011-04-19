@@ -108,6 +108,9 @@ def process(filename):
 for filename in args.files:
     process(filename)
 
+if args.put:
+	store.commit()
+
 if unsupported:
     print ('shatag: Did you forget to enable user_xattr ?', file=sys.stderr)
     exit(4)
