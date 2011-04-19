@@ -8,6 +8,8 @@ import os.path
 import shatag
 import sys
 
+config = shatag.Config()
+
 parser = argparse.ArgumentParser( description='Display and update xattr-based checksums.')
 parser.add_argument('-c','--canonical', action='store_true', help='Output canonical file names.')
 parser.add_argument('-t','--tag', action='store_true', help='add checksums to untagged files')
@@ -20,8 +22,8 @@ parser.add_argument('-0','--null', action='store_true', help='separate output re
 parser.add_argument('-l','--lookup', action='store_true', help='look up files in the database, color/symbol-code them')
 parser.add_argument('-L','--lookup-verbose', action='store_true', help='verbosely list duplicate locations')
 parser.add_argument('-p','--put', action='store_true', help='add tags to database')
-parser.add_argument('-d','--database', metavar='DB', help='database path for -l/-L mode')
-parser.add_argument('-n','--name', metavar='NAME', help='name of local storage for -l/-L mode')
+parser.add_argument('-d','--database', metavar='DB', help='database path for -l/-L mode', default=config.database)
+parser.add_argument('-n','--name', metavar='NAME', help='name of local storage for -l/-L mode', default=config.name)
 parser.add_argument('-R','--remote', metavar='NAME', action='append', help='remote storage to consider for -r/-R mode')
 parser.add_argument('files', metavar='FILE', nargs='*', help='files to checksum')
 
