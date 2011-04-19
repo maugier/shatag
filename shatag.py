@@ -190,7 +190,8 @@ class LocalStore(SQLStore):
         super().__init__(url, name)
 
         try:
-            cursor.execute('create table contents(hash text, name text, path text, primary key(hash,name,path))')
+            cursor.execute('create table contents(hash text, name text, path text, primary key(name,path))')
+            cursor.execute('create index contents_hash on contents(hash)')
         except sqlite3.OperationalError as e:
             pass #table already created
 
