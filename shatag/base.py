@@ -214,7 +214,9 @@ class StoreResult:
 
     def pretty(self):
         prefix = '\x1b[33;1m- '
-        if self.status == 2:
+        if self.file.shatag == 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855':
+            prefix = '\x1b[35;1m* ' 
+        elif self.status == 2:
             prefix = '\x1b[31;1m+ '
         elif self.status == 1:
             prefix = '\x1b[32;1m= '
