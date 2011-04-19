@@ -226,11 +226,16 @@ class Config:
     def __init__(self):
 
         self.database = None
+        self.name = None
 
-        with open('{0}/.shatagrc'.format(os.environ['HOME']),'r') as f:
-            d = yaml.load(f)
-
-            if 'database' in d:
-                self.database = d['database']
+        try:
+            with open('{0}/.shatagrc'.format(os.environ['HOME']),'r') as f:
+                d = yaml.load(f)
+                if 'database' in d:
+                    self.database = d['database']
+                if 'name' in d:
+                    self.name = d['name']
+        except IOError as e:
+            pass
       
 

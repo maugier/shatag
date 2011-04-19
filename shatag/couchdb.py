@@ -13,12 +13,12 @@ class CouchStore(IStore):
     def __init__(self, url=None, name=None):
         super().__init__(url, name)
 
-	server = couchdb.Server(url)
-	self.db = server['shatag']
+        server = couchdb.Server(url)
+        self.db = server['shatag']
 
 
     def clear(self, base='/'):
-    	pass
+        pass
 
     def record(self, name, path, tag):
         self.db.save({'hash':tag, 'name':name, 'path':path})
@@ -42,7 +42,7 @@ class CouchStore(IStore):
         return StoreResult(file, remote, local) 
 
     def fetch(self, hash):
-    	pass	
+        pass    
 
     def commit(self):
         self.db.commit()

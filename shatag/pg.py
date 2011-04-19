@@ -18,7 +18,7 @@ class PgStore(SQLStore):
 
         try:
             cursor.execute('create table contents(hash varchar(64), name varchar(50), path varchar(100), primary key (name, path))')
-	    cursor.execute('create index content_hash on contents(hash)')
+            cursor.execute('create index content_hash on contents(hash)')
         except psycopg2.ProgrammingError as e:
             pass
 
