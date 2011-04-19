@@ -1,0 +1,6 @@
+shatag v0.2
+ * PostgreSQL support
+ * shatag-add obsoleted for shatag -p
+
+shatag v0.1
+ * useable for de-duplication

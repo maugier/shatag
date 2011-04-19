@@ -10,7 +10,9 @@ the checksum values.
   Shatag is currently written for Python 3, and requires the pyxattr
 (http://pyxattr.sourceforge.net) and argparse (http://code.google.com/p/argparse/) packages.
 
-  If you want to use the remote modes, you'll need sqlite3 as well.
+
+  If you want to check for local or remote duplicates, you will need either sqlite3 or psycopg2
+support (and setup the corresponding database)
 
 
 USAGE
@@ -26,7 +28,8 @@ SUMMARY OF TOOLS
 as well as reporting duplicate.
 
   shatag-add(1) processes the output of shatag(1) and stores it in a sqlite database.
-the database is used by shatag(1) afterwards to detect duplicates.
+the database is used by shatag(1) afterwards to detect duplicates. Its use is deprecated
+in favor of the -p option of shatag(1)
   
   shatag-mkdb(1) is a wrapper to collect checksums from a remote host. It is roughly
 equivalent to calling
