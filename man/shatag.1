@@ -36,12 +36,18 @@ Instead of outputting one record per line (like
 does,) separate records with null characters.
 
 .IP "\fB\-d \fIDATABASE\fR, \fB\-\-database \fIDATABASE\fP"
-Set the path of the SQLite database to query when checking for duplicates
-with
+Set the path of the SQLite database to query when using 
 .B "\-l" 
-or
+, 
 .B "\-L"
+or
+.B "\-p"
 (The default path is $HOME/.shatagdb, overridable from the config file)
+
+Instead of a file name, a PostgreSQL database can be specified with a prefix of "pg:"
+followed by a psycopg2 DSN string, like:
+
+"pg:dbname=shatag user=myuser password=mypassword host=192.168.1.3"
 
 .IP "\fB\-f, \-\-force\fP"
 When running with
@@ -59,9 +65,11 @@ and indicate if the file exists. A
 .B "yellow -"
 mark indicates that the file does not exist somewhere else, a 
 .B "green ="
-that the file exists at one or several remote locations, and a
+that the file exists at one or several remote locations, a
 .B "red +"
-that the file has a duplicate on the local system.
+that the file has a duplicate on the local system, and a
+.B "magenta *"
+that the file is empty.
 
 .IP "\fB\-L, \-\-lookup\-verbose\fP"
 Instead of displaying the checksums, look them up against the local database.
@@ -71,8 +79,11 @@ Print all the known remote locations for identical files.
 Name of local storage (defaults to canonical local host name). This needs to be correct if
 the local database contains entries for this own host.
 
+.IP "\fB\-p, \-\-put\fP"
+Record found tags in the database, for duplicate detection.
+
 .IP "\fB\-q, \-\-quiet\fP"
-Do not display the valid checksums found by the tool.
+Do not display the valid checksums when they are found.
 
 .IP "\fB\-r, \-\-recursive\fP"
 Recurse trough subdirectories
@@ -102,7 +113,7 @@ Report encoutered files that have an outated or missing checksum.
 
 .TP
 ~/.shatagrc
-YAML configuration file. Currently has only one possible configuration value, "database", which sets the database path (by default, ~/.shatagdb)
+YAML configuration file. Currently has only two possible configuration keys: "database", which sets the database path (by default, ~/.shatagdb) and "name" for the volume name in the database (default to canonical host name.)
 
 .SH BUGS
 Support for non-ASCII filenames across systems of different and/or inconsistent encodings have not been fully tested.
