@@ -1,2 +1,4 @@
 syntax: glob
 .git
+*.pyc
+build/

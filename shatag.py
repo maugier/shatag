@@ -7,6 +7,7 @@ import hashlib
 import os
 import os.path
 import socket
+import sqlite3
 import sys
 import yaml
 import xattr
@@ -31,7 +32,9 @@ class NoChecksum(Exception):
     pass
 
 class File:
+    """Represents a checksummed file in the FS. Currently handles xattrs only."""
     def __init__(self, filename, db=None):
+        """Creates a file object. This will load the corresponding timestamp and xattrs from the filesystem."""
         self.filename = filename 
         self.db = db
         self.mtime = int(os.stat(filename).st_mtime)
@@ -57,23 +60,28 @@ class File:
             self.state = 'bad'
 
     def fullpath(self):
+        """Absolute path of the file object"""
         return os.path.abspath(self.filename)
 
     def path(self, canonical=False):
+        """If canonical is true, equivalent to fullpath, otherwise file name"""
         if canonical:
             return self.fullpath()
         else:
             return self.filename
 
     def update(self):
+        """Rehash the file only if there is an existing, outdated hash"""
         if self.state == 'bad': 
             self.rehash()
 
     def tag(self):
+        """Rehash the file if there is an outated hash or no hash at all"""
         if self.state == 'missing' or self.state == 'bad':
             self.rehash()
 
     def show(self, canonical=False):
+        """Show the hash and filename in sha256(1) compatible format"""
         if self.state == 'good':
             return self.shatag + '  ' + self.path(canonical)
         else:
@@ -81,6 +89,7 @@ class File:
 
 
     def verbose(self, canonical=False):
+        """Print warnings if the checksum is missing or outdated"""
         if self.state == 'missing':
             print('<missing>  {0}'.format(self.path(canonical)), file=sys.stderr)
         if self.state == 'bad':
@@ -88,6 +97,7 @@ class File:
 
 
     def rehash(self):
+        """Rehash the file and store the new checksum and timestamp"""
         self.ts = self.mtime
         newsum = hashfile(self.filename)
         self.shatag = newsum
@@ -95,71 +105,99 @@ class File:
         xattr.setxattr(self.filename, 'user.shatag.ts', str(self.mtime).encode('ascii'))
         self.state = 'good'
 
-class Store:
 
-    def __init__(self, url=None, name=None):
-
-        if name is None:
-            name = chost()            
-        self.name = name
-
+def Store(url=None, name=None):
+        """Factory to build a store.
+        Arguments:
+        url -- URL of the http store, or local filename of sqlite database
+        name -- name of the local host when putting objets to store and to
+                differentiate local from remote dupes.
+        
+        """
         if url is None:
             url = '{0}/.shatagdb'.format(os.environ['HOME'])
-
-        db = None
-
-        if url.startswith('pg:'):
-            import postgresql.driver.dbapi20 as pg_driver
-            l = url.split(':')
-            db = pg_driver.connect(host=l[1],user=l[2],password=l[3])
+    
+        if url.startswith("http://") or url.startswith("https://"):
+            from shatag.couchdb import CouchStore
+            return CouchStore(url, name)
+        elif url.startswith("pg:"):
+            from shatag.pg import PgStore
+            return PgStore(url, name)
         else:
-            import sqlite3
-            db = sqlite3.connect(url)
+            return LocalStore(url, name)
 
-        self.db = db
+class IStore:
+    def __init__(self, url=None, name=None):
+        if name is None:
+            name = chost()            
 
-        cursor = self.db.cursor()
-        self.cursor = cursor
-
-        try:
-            cursor.execute('create table contents(hash text, name text, path text, primary key(hash,name,path))')
-        except sqlite3.OperationalError as e:
-            pass #table already created
-
-    def clear(self, base='/'):
-        self.cursor.execute('delete from contents where name = :name and substr(path,1,length(:base)) like :base', {'name': self.name, 'base': base})
-        return self.cursor.rowcount
+        self.name = name
+        self.url = url
 
     def put(self, file):
         self.record(self.name, file.fullpath(), file.shatag)
 
-    def record(self, name, path, tag):
-        self.cursor.execute('insert into contents(hash,name,path) values(?,?,?)', (tag, name, path))
-
-    def lookup(self, file, remote=None):
-
+    def lookup(self, file, remotenames=None):
         local = list()
         remote = list()
 
         if file.state != 'good':
             raise NoChecksum()
 
-        self.cursor.execute('select name,path from contents where hash=?',
-            (file.shatag, ))
-        for (name, path) in self.cursor:
+        for (name, path) in self.fetch(file.shatag):
         
-            if (name in remote) or (remote is None and name != self.name):
+            if ((remotenames is None and name != self.name) or
+               (remotenames is not None and name in remotenames)):
                     remote.append((name,path))
             elif path != file.fullpath():
                 local.append((name,path))
 
         return StoreResult(file, remote, local) 
 
+
+class SQLStore(IStore):
+
+    def __init__(self, url=None, name=None):
+        super().__init__(url, name)
+
+
+    def clear(self, base='/'):
+        self.cursor.execute('delete from contents where name = :name and substr(path,1,length(:base)) like :base', {'name': self.name, 'base': base})
+        return self.cursor.rowcount
+
+
+    def record(self, name, path, tag):
+        self.cursor.execute('delete from contents where name = ? and path = ?', (name, path))
+        self.cursor.execute('insert into contents(hash,name,path) values(?,?,?)', (tag, name, path))
+
+    def fetch(self,hash):
+        self.cursor.execute('select name,path from contents where hash=?', (hash,))
+        return self.cursor
+
     def commit(self):
         self.db.commit()
 
     def rollback(self):
         self.db.rollback()
+
+class LocalStore(SQLStore):
+    def __init__(self, url=None, name=None):
+        db = sqlite3.connect(url)
+        self.db = db
+
+        cursor = self.db.cursor()
+        self.cursor = cursor
+
+        super().__init__(url, name)
+
+        try:
+            cursor.execute('create table contents(hash text, name text, path text, primary key(name,path))')
+            cursor.execute('create index contents_hash on contents(hash)')
+        except sqlite3.OperationalError as e:
+            pass #table already created
+
+    def record(self, name, path, tag):
+        self.cursor.execute('insert or replace into contents(hash,name,path) values (?,?,?)', (tag,name,path))
 
 class StoreResult:
     def __init__(self,file,remote,local):

@@ -19,6 +19,7 @@ parser.add_argument('-r','--recursive', action='store_true', help='inspect direc
 parser.add_argument('-0','--null', action='store_true', help='separate output records with NULLs instead of newlines')
 parser.add_argument('-l','--lookup', action='store_true', help='look up files in the database, color/symbol-code them')
 parser.add_argument('-L','--lookup-verbose', action='store_true', help='verbosely list duplicate locations')
+parser.add_argument('-p','--put', action='store_true', help='add tags to database')
 parser.add_argument('-d','--database', metavar='DB', help='database path for -l/-L mode')
 parser.add_argument('-n','--name', metavar='NAME', help='name of local storage for -l/-L mode')
 parser.add_argument('-R','--remote', metavar='NAME', action='append', help='remote storage to consider for -r/-R mode')
@@ -47,7 +48,7 @@ unsupported = False
 end = args.null and '\0' or '\n'
 store = None
 
-if args.lookup or args.lookup_verbose:
+if args.lookup or args.lookup_verbose or args.put:
     store = shatag.Store(name=args.name, url=args.database)
 
 def process(filename):
@@ -59,7 +60,7 @@ def process(filename):
                 return
 
         else:
-            if not os.path.isfile(filename) and not args.recursive:
+            if not os.path.isfile(filename) :
                 print ('shatag: Warning: {0} is not a file'.format(filename), file=sys.stderr)
                 return
 
@@ -80,8 +81,11 @@ def process(filename):
             if not (args.quiet or args.lookup or args.lookup_verbose):
                 print(file.show(canonical = args.canonical), end=end)
 
+            if args.put:
+                store.put(file)
+
             if args.lookup:
-                print(store.lookup(file, remote=args.remote).pretty())
+                print(store.lookup(file, remotenames=args.remote).pretty())
 
             if args.lookup_verbose:
                 r = store.lookup(file)
@@ -103,6 +107,9 @@ def process(filename):
 
 for filename in args.files:
     process(filename)
+
+if args.put:
+	store.commit()
 
 if unsupported:
     print ('shatag: Did you forget to enable user_xattr ?', file=sys.stderr)
