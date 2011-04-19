@@ -167,6 +167,7 @@ class SQLStore(IStore):
 
 
     def record(self, name, path, tag):
+        self.cursor.execute('delete from contents where name = ? and path = ?', (name, path))
         self.cursor.execute('insert into contents(hash,name,path) values(?,?,?)', (tag, name, path))
 
     def fetch(self,hash):
@@ -194,6 +195,9 @@ class LocalStore(SQLStore):
             cursor.execute('create index contents_hash on contents(hash)')
         except sqlite3.OperationalError as e:
             pass #table already created
+
+    def record(self, name, path, tag):
+        self.cursor.execute('insert or replace into contents(hash,name,path) values (?,?,?)', (tag,name,path))
 
 class StoreResult:
     def __init__(self,file,remote,local):
