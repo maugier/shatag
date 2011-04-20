@@ -167,6 +167,8 @@ class SQLStore(IStore):
 
 
     def clear(self, base='/'):
+        if base[-1] != '/':
+            base = base + '/'
         self.cursor.execute('delete from contents where name = :name and substr(path,1,length(:base)) like :base', {'name': self.name, 'base': base})
         return self.cursor.rowcount
 

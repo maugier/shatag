@@ -108,6 +108,8 @@ def process(filename):
         print ('shatag: {0}'.format(e), file=sys.stderr)
 
 for filename in args.files:
+    if args.put:
+        store.clear(os.path.abspath(filename))
     process(filename)
 
 if args.put:
