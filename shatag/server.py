@@ -1,15 +1,32 @@
 from shatag import *
-from flask import Flask, request, jsonify
+from bottle import get, post, request, debug
+import bottle
+import json
+from io import TextIOWrapper
 
-app = Flask(__name__)
+store = None
+debug(True)
 
-@app.route('/host/<hostname>', methods=['POST'])
-def add(host):
-    print("host post {0} with data {1}\n".format(host, request.json))
-    return jsonify(dummy=response, hello=world)
+def parse(r):
+    encoding = 'utf-8'
+    return json.load(TextIOWrapper(request.body), encoding=encoding)
 
-def run():
-    app.run()
+@get('/hash/:hash#[a-f0-9]+#')
+def get(hash):
+    return {hash: [{'host':h, 'file':f} for (h,f) in store.fetch(hash)]}
 
-if __name__ == "__main__":
-    app.run()
+@post('/host/:name#[a-z0-9.]+#')
+def add(name):
+    blob = parse(request)
+    for base, item in blob:
+        for file, hash in item:
+            store.record(name,file,hash)
+
+def run(**kw):
+    global store
+    try:
+        store = Store(kw['database'])
+    except KeyError:
+        store = Store(Config().database)
+
+    bottle.run(**kw)

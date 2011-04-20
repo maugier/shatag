@@ -135,14 +135,17 @@ class IStore:
         self.url = url
 
     def put(self, file):
+        """add a file to the store, using the local default name"""
         self.record(self.name, file.fullpath(), file.shatag)
 
     def puttree(self, base, files):
+        """put a bunch of files to the store, clearing the base first"""
         self.clear(base)
         for f in files:
             self.put(f)
 
     def lookup(self, file, remotenames=None):
+        """lookup a file for collisions, and returns a StoreResult object"""
         local = list()
         remote = list()
 
@@ -172,7 +175,7 @@ class SQLStore(IStore):
         self.cursor.execute('delete from contents where name = :name and substr(path,1,length(:base)) like :base', {'name': self.name, 'base': base})
         return self.cursor.rowcount
 
-
+    
     def record(self, name, path, tag):
         self.cursor.execute('delete from contents where name = ? and path = ?', (name, path))
         self.cursor.execute('insert into contents(hash,name,path) values(?,?,?)', (tag, name, path))
