@@ -137,6 +137,11 @@ class IStore:
     def put(self, file):
         self.record(self.name, file.fullpath(), file.shatag)
 
+    def puttree(self, base, files):
+        self.clear(base)
+        for f in files:
+            self.put(f)
+
     def lookup(self, file, remotenames=None):
         local = list()
         remote = list()
