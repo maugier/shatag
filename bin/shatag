@@ -108,7 +108,7 @@ def process(filename):
         print ('shatag: {0}'.format(e), file=sys.stderr)
 
 for filename in args.files:
-    if args.put:
+    if args.put and args.recursive:
         store.clear(os.path.abspath(filename))
     process(filename)
 
