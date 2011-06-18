@@ -11,8 +11,12 @@ import sys
 import yaml
 
 def chost():
-    (canonical,aliases,addresses) = socket.gethostbyaddr(socket.gethostname())
-    return canonical
+    hostname = socket.gethostname()
+    try:
+        (canonical,aliases,addresses) = socket.gethostbyaddr(socket.gethostname())
+        return canonical
+    except socket.gaierror:
+        return hostname
 
 def hashfile (filename):
     bs=4096
