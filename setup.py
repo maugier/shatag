@@ -1,4 +1,4 @@
-from distutils.core import setup
+from setuptools import setup
 setup(name='shatag',
       version = '0.2',
       description = 'File checksumming utility',
@@ -6,4 +6,5 @@ setup(name='shatag',
       author_email = 'max@xolus.net',
       url = 'http://bitbucket.org/maugier/shatag',
       packages = ['shatag'],
+      install_requires=['argparse','yaml','json'],
       scripts = ['bin/shatag', 'bin/shatag-add', 'bin/shatag-mkdb'])
