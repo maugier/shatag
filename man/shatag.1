@@ -109,6 +109,29 @@ cases, use
 .IP "\fB\-v, \-\-verbose\fP"
 Report encoutered files that have an outated or missing checksum.
 
+.SH EXAMPLES
+.LP
+Retag a whole directory and record everything to the database:
+.RS
+.nf
+\fBshatag -pqrt .\fP
+.fi
+.RE
+.LP
+Check files in the current directory for remote duplicates:
+.RS
+.nf
+\fBshatag -l\fP
+.fi
+.RE
+.LP
+Show alternate locations for duplicates of a single file:
+.RS
+.nf
+\fBshatag -L somefile\fP
+.fi
+.RE
+
 .SH FILES
 
 .TP
