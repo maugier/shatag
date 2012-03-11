@@ -12,7 +12,7 @@ import sys
 config = shatag.Config()
 
 parser = argparse.ArgumentParser( description='Monitors files with inotify and automatically update')
-parser.add_argument('-t','--tag', action='store_true', help='add checksums to untagged files')
+parser.add_argument('-u','--update', action='store_true', help='Only update already tagged files')
 parser.add_argument('-v','--verbose', action='store_true', help='report missing/invalid checksums')
 parser.add_argument('-b','--backend', metavar='BACKEND', help='backend for local tag storage', default=config.backend)
 parser.add_argument('-r','--recursive', action='store_true', help='watch recursively')
@@ -29,10 +29,10 @@ class Handler(pyinotify.ProcessEvent):
             file = backend.file(evt.pathname)
             
 
-            if args.tag:
-                file.tag()
-            else:
+            if args.update:
                 file.update()
+            else:
+                file.tag()
 
             if args.verbose:
                 print(evt.pathname)
