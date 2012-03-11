@@ -10,7 +10,6 @@ import socket
 import sqlite3
 import sys
 import yaml
-import xattr
 
 def chost():
     (canonical,aliases,addresses) = socket.gethostbyaddr(socket.gethostname())
@@ -31,26 +30,18 @@ def hashfile (filename):
 class NoChecksum(Exception):
     pass
 
-class File:
-    """Represents a checksummed file in the FS. Currently handles xattrs only."""
+class IFile:
+    """Represents an abstract checksummed file in the FS."""
     def __init__(self, filename, db=None):
         """Creates a file object. This will load the corresponding timestamp and xattrs from the filesystem."""
         self.filename = filename 
         self.db = db
         self.mtime = int(os.stat(filename).st_mtime)
 
-        lsattr = xattr.listxattr(filename)
-
         self.ts = None
         self.shatag = None
 
-        try:
-            self.ts = int(xattr.getxattr(filename, 'user.shatag.ts'))
-            self.shatag = xattr.getxattr(filename, 'user.shatag.sha256').decode('ascii')
-        except IOError as e:
-            if e.errno != 61:  # No data available
-                raise
-
+        self.read()
 
         if self.mtime == self.ts:
             self.state = 'good'
@@ -101,8 +92,7 @@ class File:
         self.ts = self.mtime
         newsum = hashfile(self.filename)
         self.shatag = newsum
-        xattr.setxattr(self.filename, 'user.shatag.sha256', newsum.encode('ascii'))
-        xattr.setxattr(self.filename, 'user.shatag.ts', str(self.mtime).encode('ascii'))
+        self.write()
         self.state = 'good'
 
 
@@ -232,13 +222,14 @@ class StoreResult:
             prefix = '\x1b[32;1m= '
 
         return prefix + self.file.filename + "\x1b[0m"
-        
 
 class Config:
     def __init__(self):
 
         self.database = None
         self.name = None
+        # Change this if on windows
+        backend = 'xattr'
 
         try:
             with open('{0}/.shatagrc'.format(os.environ['HOME']),'r') as f:
@@ -247,7 +238,12 @@ class Config:
                     self.database = d['database']
                 if 'name' in d:
                     self.name = d['name']
+                if 'backend' in d:
+                    backend = d['backend']
         except IOError as e:
             pass
+
       
+def backend(name):
+    return __import__('shatag.backend.{0}'.format(name), globals(), locals(), ['Backend'], -1).Backend()
 
