@@ -1,0 +1,45 @@
+.TH shatag 1 11.03.2012 "Shatag 0.3" "Shatag"
+
+.SH NAME
+
+shatagd - Automatically maintain hash tags for files in a given directory
+
+.SH SYNOPSIS
+.B shatagd
+.nh
+[\fB\-druv\fR]
+[\fBPATH\fR]...
+.hy
+
+.SH DESCRIPTION
+.BR shatagd
+Is a daemon companion to
+.BR shatag (1)
+that will monitor filesystem paths using
+.BR inotify (7)
+and automatically recompute a tag whenever a file is written to.
+
+.SH OPTIONS
+
+.IP "\fB\-d, \-\-daemon\fP"
+Daemonize. You must use absolute file paths when using this option.
+
+.IP "\fB\-r, \-\-recursive\fP"
+Recursively watch sub-directories, as well as newly created directories.
+
+.IP "\fB\-u, \-\-update\fP"
+Only update already tagged files. See the shatag(1) manpage for pitfalls.
+
+.IP "\fB\-v, \-\-verbose\fP"
+Write to stdout the paths of files which have their tags recomputed.
+
+.SH BUGS
+Recursive mode is subject to an unavoidable race condition, due to a limitation of inotify.
+
+Relative paths do not work when daemonized, only use absolute paths.
+
+.SH "REPORTING BUGS"
+Report shatag bugs to the bugtracker at http://bitbucket.org/maugier/shatag,
+
+.SH "SEE ALSO"
+.BR shatag (1)
