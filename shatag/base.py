@@ -229,7 +229,7 @@ class Config:
         self.database = None
         self.name = None
         # Change this if on windows
-        backend = 'xattr'
+        self.backend = 'xattr'
 
         try:
             with open('{0}/.shatagrc'.format(os.environ['HOME']),'r') as f:
@@ -239,7 +239,7 @@ class Config:
                 if 'name' in d:
                     self.name = d['name']
                 if 'backend' in d:
-                    backend = d['backend']
+                    self.backend = d['backend']
         except IOError as e:
             pass
 

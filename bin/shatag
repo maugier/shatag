@@ -23,6 +23,7 @@ parser.add_argument('-l','--lookup', action='store_true', help='look up files in
 parser.add_argument('-L','--lookup-verbose', action='store_true', help='verbosely list duplicate locations')
 parser.add_argument('-p','--put', action='store_true', help='add tags to database')
 parser.add_argument('-d','--database', metavar='DB', help='database path for -l/-L mode', default=config.database)
+parser.add_argument('-b','--backend', metavar='BACKEND', help='backend for local tag storage', default=config.backend)
 parser.add_argument('-n','--name', metavar='NAME', help='name of local storage for -l/-L mode', default=config.name)
 parser.add_argument('-R','--remote', metavar='NAME', action='append', help='remote storage to consider for -r/-R mode')
 parser.add_argument('files', metavar='FILE', nargs='*', help='files to checksum')
@@ -53,6 +54,8 @@ store = None
 if args.lookup or args.lookup_verbose or args.put:
     store = shatag.Store(name=args.name, url=args.database)
 
+backend = shatag.backend(args.backend)
+
 def process(filename):
     try:
 
@@ -66,7 +69,7 @@ def process(filename):
                 print ('shatag: Warning: {0} is not a file'.format(filename), file=sys.stderr)
                 return
 
-        file = shatag.File(filename)
+        file = backend.file(filename)
         if args.verbose:
             file.verbose()
 

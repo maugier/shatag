@@ -9,7 +9,7 @@ class File(shatag.base.IFile):
             self.ts = int(xattr.getxattr(self.filename, 'user.shatag.ts'))
             self.shatag = xattr.getxattr(self.filename, 'user.shatag.sha256').decode('ascii')
         except IOError as e:
-            if e.errno == 61:  # xattr support lacking in fs
+            if e.errno != 61:  # no tag present
                raise e
 
     def write(self):
