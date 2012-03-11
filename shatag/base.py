@@ -7,7 +7,6 @@ import hashlib
 import os
 import os.path
 import socket
-import sqlite3
 import sys
 import yaml
 
@@ -114,6 +113,7 @@ def Store(url=None, name=None):
             from shatag.pg import PgStore
             return PgStore(url, name)
         else:
+            from shatag.sqlite import LocalStore
             return LocalStore(url, name)
 
 class IStore:
@@ -179,25 +179,6 @@ class SQLStore(IStore):
 
     def rollback(self):
         self.db.rollback()
-
-class LocalStore(SQLStore):
-    def __init__(self, url=None, name=None):
-        db = sqlite3.connect(url)
-        self.db = db
-
-        cursor = self.db.cursor()
-        self.cursor = cursor
-
-        super().__init__(url, name)
-
-        try:
-            cursor.execute('create table contents(hash text, name text, path text, primary key(name,path))')
-            cursor.execute('create index contents_hash on contents(hash)')
-        except sqlite3.OperationalError as e:
-            pass #table already created
-
-    def record(self, name, path, tag):
-        self.cursor.execute('insert or replace into contents(hash,name,path) values (?,?,?)', (tag,name,path))
 
 class StoreResult:
     def __init__(self,file,remote,local):
