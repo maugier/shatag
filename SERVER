@@ -4,13 +4,13 @@ $URL is the service endpoint, https://example.com/shatag
 
 send a bunch of hashes:
 
-PUT $URL/host/<hostname>
-Data: json document containing { hash => path, hash => path, ...}
+POST $URL/host/<hostname>
+Data: json document containing { root: [ path: hash, path: hash, ...] }
 
 check if a hash exists:
 
 GET $URL/where/<hash>
-Data: list of hosts
+Data: document containing { hash: [host, host, ...] }
 
 GET $URL/find/<hash>
-Data: document containing { host => path, host => path, ...}
+Data: document containing { hash: { host: [path], host: [path], ...}}

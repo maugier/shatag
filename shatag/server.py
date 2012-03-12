@@ -1,32 +1,31 @@
 from shatag import *
-from bottle import get, post, request, debug
 import bottle
 import json
 from io import TextIOWrapper
-
-store = None
-debug(True)
 
 def parse(r):
     encoding = 'utf-8'
     return json.load(TextIOWrapper(request.body), encoding=encoding)
 
-@get('/hash/:hash#[a-f0-9]+#')
-def get(hash):
-    return {hash: [{'host':h, 'file':f} for (h,f) in store.fetch(hash)]}
+class ShatagServer(bottle.Bottle):
+    def __init__(self, store=None):
+        super(ShatagServer, self).__init__()
+        if store is None:
+            store = Config().database
+        self.shatag_store = Store(store)
 
-@post('/host/:name#[a-z0-9.]+#')
-def add(name):
-    blob = parse(request)
-    for base, item in blob:
-        for file, hash in item:
-            store.record(name,file,hash)
+        @self.get('/find/<hash:re:[a-f0-9]+>')
+        def callback(hash):
+            return {hash: [{'host':h, 'file':f} for (h,f) in self.shatag_store.fetch(hash)]}
 
-def run(**kw):
-    global store
-    try:
-        store = Store(kw['database'])
-    except KeyError:
-        store = Store(Config().database)
+        @self.get('/where/<hash:re:[a-f0-9]+>')
+        def callback(hash):
+            return {hash: [h for (h,f) in self.shatag_store.fetch(hash)]}
 
-    bottle.run(**kw)
+        @self.post('/host/<name:re:[a-z0-9.]+>')
+        def callback(name):
+            blob = parse(request)
+            for base, item in blob:
+                store.clear(base,name)
+                for file, hash in item:
+                    store.record(name,file,hash)
