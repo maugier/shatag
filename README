@@ -6,19 +6,43 @@ remote duplicate detection. Files are compared on their SHA-256 hash
 to find duplicates, and will use filesystem extended attributes to cache
 the checksum values.
 
-  Shatag is currently written for Python 3, and requires the pyxattr
-(http://pyxattr.sourceforge.net) and argparse (http://code.google.com/p/argparse/) packages.
+REQUIREMENTS
 
-  If you want to check for local or remote duplicates, you will need either sqlite3 or psycopg2
-support (and setup the corresponding database)
+ - Python 3
+ - argparse
+ - pyxattr (until other backends become available)
+ - If you want to use a database store: sqlite3 or psycopg2
+ - If you want to use an http remote store: requests
+ - If you want to use the http store server: the Bottle framework
 
-
-USAGE
+QUICKSTART
 
   Before you attempt to use shatag, make sure the filesystem you will be working on has
 support for user extended attributes. This is typically enabled by adding the user_xattr
-mount option to the appropriate filesystem in /etc/fstab.
+mount option to the appropriate filesystem in /etc/fstab. You can also enable support
+without unmounting with:
 
+  sudo mount -o remount,user_xattr /mountpoint
+
+  If you want to use a remote database, setup a configuration file ~/.shatagrc with contents like:
+
+  database: "pg: dbname=shatag host=localhost user=shatag password=xxxsecretpasswordxxx"
+
+  Next, start tagging some files with: 
+  
+  shatag -qrt /home/data
+
+  Upload the proper tags to the database with:
+  
+  shatag -qrp /home/data  (you can combine the -t and -p flags in one command)
+
+  You can start a daemon to automatically recompute tags when needed:
+
+  shatagd -dr /home/data
+
+  Check for duplicates in a directory with
+
+  shatag -rl .
 
 SUMMARY OF TOOLS
 
