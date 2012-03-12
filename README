@@ -2,14 +2,12 @@
 OVERVIEW
 
   Shatag is a tool for computing and caching file checksums, and do
-"remote de-duplication" -- an efficient way to discover which files exist,
-or are duplicates, on remote servers. It relies on the SHA-256 algorithm
+remote duplicate detection. Files are compared on their SHA-256 hash
 to find duplicates, and will use filesystem extended attributes to cache
 the checksum values.
 
   Shatag is currently written for Python 3, and requires the pyxattr
 (http://pyxattr.sourceforge.net) and argparse (http://code.google.com/p/argparse/) packages.
-
 
   If you want to check for local or remote duplicates, you will need either sqlite3 or psycopg2
 support (and setup the corresponding database)
@@ -27,14 +25,8 @@ SUMMARY OF TOOLS
   shatag(1) is the main tool, and used for computing and displaying file checksums,
 as well as reporting duplicate.
 
-  shatag-add(1) processes the output of shatag(1) and stores it in a sqlite database.
-the database is used by shatag(1) afterwards to detect duplicates. Its use is deprecated
-in favor of the -p option of shatag(1)
-  
-  shatag-mkdb(1) is a wrapper to collect checksums from a remote host. It is roughly
-equivalent to calling
-
-  ssh <hostname> shatag -rc0 <path> |shatag-add <hostname>
+  shatagd(1) will monitor directories for file changes and update the checksums automatically.
+it requires pyinotify.
 
   Refer to the man pages of these tools for more information.
 
@@ -51,7 +43,7 @@ will rather compute unneccesary checksums than consider an old checksum valid.
 
   The local sqlite database contains a single table:
   
-  create table contents(text hash, text name, text path, primary key (hash,name,path))
+  create table contents(hash text, name text, path text, primary key (hash,name,path));
 
   When querying the database, shatag will lookup the hash and count the matching paths at each location. The file will
 be considered a dupe if any location has the file more than once.
