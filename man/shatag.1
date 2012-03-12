@@ -138,6 +138,11 @@ Show alternate locations for duplicates of a single file:
 ~/.shatagrc
 YAML configuration file. Currently has only two possible configuration keys: "database", which sets the database path (by default, ~/.shatagdb) and "name" for the volume name in the database (default to canonical host name.)
 
+Examples:
+
+database: /var/lib/shatag.db
+database: "pg: dbname=shatag host=localhost user=shatag password=xxxsecretpasswordxxx"
+
 .SH BUGS
 Support for non-ASCII filenames across systems of different and/or inconsistent encodings have not been fully tested.
 
