@@ -159,12 +159,13 @@ class SQLStore(IStore):
         super().__init__(url, name)
 
 
-    def clear(self, base='/'):
+    def clear(self, base='/', name=None):
+        if (name is None):
+            name = self.name
         if base[-1] != '/':
             base = base + '/'
-        self.cursor.execute('delete from contents where name = :name and substr(path,1,length(:base)) like :base', {'name': self.name, 'base': base})
+        self.cursor.execute('delete from contents where name = :name and substr(path,1,length(:base)) like :base', {'name': name, 'base': base})
         return self.cursor.rowcount
-
     
     def record(self, name, path, tag):
         self.cursor.execute('delete from contents where name = ? and path = ?', (name, path))
