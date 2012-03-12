@@ -96,7 +96,9 @@ class IFile:
 
 
 def Store(url=None, name=None):
-        """Factory to build a store.
+        """Factory to build a store. A store is an abstraction for a remote
+	database to which one can send hashes, and quickly query for alternate
+	locations with identical hashes.
         Arguments:
         url -- URL of the http store, or local filename of sqlite database
         name -- name of the local host when putting objets to store and to
@@ -154,7 +156,10 @@ class IStore:
 
 
 class SQLStore(IStore):
-
+    """A store backed by some sort of SQL database. It expects
+    self.db to be a valid DB-API database, and
+    self.cursor to be a valid DB-API cursor.
+    """
     def __init__(self, url=None, name=None):
         super().__init__(url, name)
 
@@ -227,5 +232,8 @@ class Config:
 
       
 def backend(name):
+    """Create a Backend object. A backend is an abstraction for local tag storage, that may
+    not have a fast way of locating files with identical hashes, but is fast to query on a per-file basis.
+    """
     return __import__('shatag.backend.{0}'.format(name), globals(), locals(), ['Backend'], -1).Backend()
 

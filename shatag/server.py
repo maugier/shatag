@@ -8,6 +8,7 @@ def parse(r):
     return json.load(TextIOWrapper(request.body), encoding=encoding)
 
 class ShatagServer(bottle.Bottle):
+    """A Bottle server that exposes a store trough a restful JSON-based API."""
     def __init__(self, store=None):
         super(ShatagServer, self).__init__()
         if store is None:

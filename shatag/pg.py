@@ -7,6 +7,7 @@ from shatag import *
 import psycopg2
 
 class PgStore(SQLStore):
+    """A postgresql store using psycopg2."""
     def __init__(self, url=None, name=None):
         db = psycopg2.connect(url[3:])
         self.db = db
