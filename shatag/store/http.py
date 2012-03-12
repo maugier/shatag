@@ -6,8 +6,8 @@ import requests
 import json
 import shatag.base
 
-class Store(shatag.base.IStore):
-    def __init__(self,url):
+class HTTPStore(shatag.base.IStore):
+    def __init__(self,url,name):
         super().__init__(url, name)
         self.session = requests.session()
 
@@ -15,8 +15,8 @@ class Store(shatag.base.IStore):
         return json.loads(self.session.get(url, prefetch=True).text)
 
     def fetch(self,hash):
-    	data = self.call(self.url + '/find/' + hash)
-	for item in data[hash]:
+        data = self.call(self.url + '/find/' + hash)
+        for item in data[hash]:
             yield (item['host'], item['file'])
 
-	
+
