@@ -112,7 +112,7 @@ def Store(url=None, name=None):
         if url is None:
             url = '{0}/.shatagdb'.format(os.environ['HOME'])
     
-        if url.startswith("http://") or url.startswith("https://"):
+        if url.startswith("http://") or url.startswith("https://") or url.startswith("insecure-https://"):
             from shatag.store.http import HTTPStore
             return HTTPStore(url, name)
         if url.startswith("couchdb:"):

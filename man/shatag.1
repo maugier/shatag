@@ -140,8 +140,10 @@ YAML configuration file. Currently has only two possible configuration keys: "da
 
 Examples:
 
-database: /var/lib/shatag.db
-database: "pg: dbname=shatag host=localhost user=shatag password=xxxsecretpasswordxxx"
+database: /var/lib/shatag.db   # sqlite3 backend
+database: "pg: dbname=shatag host=localhost user=shatag password=xxxsecretpasswordxxx"  # postgres backend
+database: http://service.com/shatag   # http backend
+database: insecure-https://service.com/shatag  # http backend, skip ssl certificate verification
 
 .SH BUGS
 Support for non-ASCII filenames across systems of different and/or inconsistent encodings have not been fully tested.

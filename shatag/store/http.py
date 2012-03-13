@@ -8,8 +8,14 @@ import shatag.base
 
 class HTTPStore(shatag.base.IStore):
     def __init__(self,url,name):
+        verify=True
+
+        if url.startswith('insecure-https://'):
+            url = url[9:]
+            verify=False
+		
         super().__init__(url, name)
-        self.session = requests.session()
+        self.session = requests.session(verify=verify)
         self.buffer = []
 
     def get(self,url):
