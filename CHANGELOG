@@ -1,3 +1,8 @@
+shatag v0.3
+ * Modular backends, dummy backend for systems not supporting xattrs
+ * HTTP store server and client
+ * shatagd (inotify-based auto-tagger)
+
 shatag v0.2
  * PostgreSQL support
  * shatag-add obsoleted for shatag -p
