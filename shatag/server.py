@@ -4,8 +4,8 @@ import json
 from io import TextIOWrapper
 
 def parse(r):
-    encoding = 'utf-8'
-    return json.load(TextIOWrapper(request.body), encoding=encoding)
+    encoding = 'utf-8'  #todo: get encoding from headers
+    return json.load(TextIOWrapper(r.body, encoding=encoding))
 
 class ShatagServer(bottle.Bottle):
     """A Bottle server that exposes a store trough a restful JSON-based API."""
@@ -25,9 +25,9 @@ class ShatagServer(bottle.Bottle):
 
         @self.post('/host/<name:re:[a-z0-9.]+>')
         def callback(name):
-            blob = parse(request)
+            blob = parse(bottle.request)
             for item in blob:
                 if 'clear' in item:
-                    store.clear(item['clear'],name)
+                    self.shatag_store.clear(item['clear'],name)
                 elif 'path' in item:
-                    store.record(name,item['path'],item['hash'])
+                    self.shatag_store.record(name,item['path'],item['hash'])

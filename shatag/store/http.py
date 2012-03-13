@@ -25,15 +25,15 @@ class HTTPStore(shatag.base.IStore):
             raise Error("Store name {0} != {1}".format(name,self.name))
 
     def record(self,name,path,hash):
-        checkname(name)
-        self.buffer += {'path':path, 'hash':hash}
+        self.checkname(name)
+        self.buffer.append({'path':path, 'hash':hash})
 
     def clear(self,base,name):
-        checkname(name)
-        self.buffer += {'clear': base}
+        self.checkname(name)
+        self.buffer.append({'clear': base})
 
     def commit(self):
-        self.session.post(self.url + '/host/' + self.name, self.buffer)
+        self.session.post(self.url + '/host/' + self.name, json.dumps(self.buffer))
         self.buffer = []
 
     def rollback(self):
