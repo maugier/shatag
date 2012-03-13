@@ -3,11 +3,11 @@ import shatag.base
 class File(shatag.base.IFile):
 
     def read(self):
-    	self.ts = None
-	self.shatag = None
+        self.ts = None
+        self.shatag = None
 
     def write(self):
-    	pass
+        pass
 
 
 class Backend:
