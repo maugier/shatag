@@ -26,7 +26,8 @@ class ShatagServer(bottle.Bottle):
         @self.post('/host/<name:re:[a-z0-9.]+>')
         def callback(name):
             blob = parse(request)
-            for base, item in blob:
-                store.clear(base,name)
-                for file, hash in item:
-                    store.record(name,file,hash)
+            for item in blob:
+                if 'clear' in item:
+                    store.clear(item['clear'],name)
+                elif 'path' in item:
+                    store.record(name,item['path'],item['hash'])

@@ -5,7 +5,7 @@ $URL is the service endpoint, https://example.com/shatag
 send a bunch of hashes:
 
 POST $URL/host/<hostname>
-Data: json document containing { root: [ path: hash, path: hash, ...] }
+Data: json document containing [{'clear': root},{'path':path, 'hash':hash},...]
 
 check if a hash exists:
 
