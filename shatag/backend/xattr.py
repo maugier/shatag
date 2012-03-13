@@ -18,5 +18,6 @@ class File(shatag.base.IFile):
 
 
 class Backend:
+    """A backend that stores the tags in POSIX extended attributes"""
     def file(self,filename, db=None):
         return File(filename,db)
