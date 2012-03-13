@@ -39,8 +39,7 @@ class Handler(pyinotify.ProcessEvent):
 
         except IOError as e:
             print ('shatagd: "{0}": IOError {1}: {2}'.format(filename, e.errno, e.strerror), file=sys.stderr) 
-            if e.errno == 32:
-                raise
+
         except OSError as e:
             print ('shatagd: {0}'.format(e), file=sys.stderr)
 
