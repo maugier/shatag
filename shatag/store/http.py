@@ -39,7 +39,7 @@ class HTTPStore(shatag.base.IStore):
         self.buffer.append({'clear': base})
 
     def commit(self):
-        self.session.post(self.url + '/host/' + self.name, json.dumps(self.buffer))
+        self.session.post(self.url + '/host/' + self.name, json.dumps(self.buffer)).raise_for_status()
         self.buffer = []
 
     def rollback(self):
