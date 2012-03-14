@@ -43,7 +43,7 @@ class HTTPStore(shatag.base.IStore):
 
     def clear(self,base,name=None):
     	if name is not None:
-        	self.checkname(name)
+            self.checkname(name)
         self.buffer.append({'clear': base})
 
     def commit(self):
