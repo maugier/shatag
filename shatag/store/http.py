@@ -22,7 +22,7 @@ class HTTPStore(shatag.base.IStore):
         version = self.get(url).get('shatag-version')
         if version is None:
             raise Exception('Configured URL does not answer like a shatag endpoint: {0}'.format(url))
-        if version != 1:
+        if version != '1':
             raise Exception('Configured URL uses incompatible protocol version {0}: {1}'.format(version,url))
 
     def get(self,url):
