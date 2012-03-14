@@ -41,8 +41,9 @@ class HTTPStore(shatag.base.IStore):
         self.checkname(name)
         self.buffer.append({'path':path, 'hash':hash})
 
-    def clear(self,base,name):
-        self.checkname(name)
+    def clear(self,base,name=None):
+    	if name is not None:
+        	self.checkname(name)
         self.buffer.append({'clear': base})
 
     def commit(self):
