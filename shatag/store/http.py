@@ -42,7 +42,7 @@ class HTTPStore(shatag.base.IStore):
         self.buffer.append({'path':path, 'hash':hash})
 
     def clear(self,base,name=None):
-    	if name is not None:
+        if name is not None:
             self.checkname(name)
         self.buffer.append({'clear': base})
 
