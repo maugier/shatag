@@ -15,6 +15,10 @@ class ShatagServer(bottle.Bottle):
             store = Config().database
         self.shatag_store = Store(store)
 
+        @self.get('/')
+        def callback():
+            return {'shatag-version': '1'}
+
         @self.get('/find/<hash:re:[a-f0-9]+>')
         def callback(hash):
             return {hash: [{'host':h, 'file':f} for (h,f) in self.shatag_store.fetch(hash)]}

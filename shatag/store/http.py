@@ -17,6 +17,13 @@ class HTTPStore(shatag.base.IStore):
         super().__init__(url, name)
         self.session = requests.session(verify=verify)
         self.buffer = []
+        info = self.get(url)
+
+        version = self.get(url).get('shatag-version')
+        if version is None:
+            raise Exception('Configured URL does not answer like a shatag endpoint: {0}'.format(url))
+        if version != 1:
+            raise Exception('Configured URL uses incompatible protocol version {0}: {1}'.format(version,url))
 
     def get(self,url):
         return json.loads(self.session.get(url, prefetch=True).text)
