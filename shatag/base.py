@@ -33,7 +33,7 @@ def hashfile (filename):
 class NoChecksum(Exception):
     pass
 
-class IFile:
+class IFile(object):
     """Represents an abstract checksummed file in the FS."""
     def __init__(self, filename, db=None):
         """Creates a file object. This will load the corresponding timestamp and xattrs from the filesystem."""
@@ -125,7 +125,7 @@ def Store(url=None, name=None):
             from shatag.store.sqlite import LocalStore
             return LocalStore(url, name)
 
-class IStore:
+class IStore(object):
     def __init__(self, url=None, name=None):
         if name is None:
             name = chost()            
@@ -193,7 +193,7 @@ class SQLStore(IStore):
     def rollback(self):
         self.db.rollback()
 
-class StoreResult:
+class StoreResult(object):
     def __init__(self,file,remote,local):
         self.file = file
         self.remote = remote
@@ -217,7 +217,7 @@ class StoreResult:
 
         return prefix + self.file.filename + "\x1b[0m"
 
-class Config:
+class Config(object):
     def __init__(self):
 
         self.database = None

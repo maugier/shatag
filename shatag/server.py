@@ -16,19 +16,19 @@ class ShatagServer(bottle.Bottle):
         self.shatag_store = Store(store)
 
         @self.get('/')
-        def callback():
+        def root():
             return {'shatag-version': '1'}
 
         @self.get('/find/<hash:re:[a-f0-9]+>')
-        def callback(hash):
+        def find(hash):
             return {hash: [{'host':h, 'file':f} for (h,f) in self.shatag_store.fetch(hash)]}
 
         @self.get('/where/<hash:re:[a-f0-9]+>')
-        def callback(hash):
+        def where(hash):
             return {hash: [h for (h,f) in self.shatag_store.fetch(hash)]}
 
         @self.post('/host/<name:re:[a-z0-9.]+>')
-        def callback(name):
+        def host(name):
             blob = parse(bottle.request)
             for item in blob:
                 if 'clear' in item:

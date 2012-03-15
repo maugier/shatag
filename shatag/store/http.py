@@ -14,7 +14,7 @@ class HTTPStore(shatag.base.IStore):
             url = url[9:]
             verify=False
 		
-        super().__init__(url, name)
+        super(HTTPStore,self).__init__(url, name)
         self.session = requests.session(verify=verify)
         self.buffer = []
         try:
@@ -34,7 +34,7 @@ class HTTPStore(shatag.base.IStore):
 
     def checkname(self,name):
         if name != self.name:
-            raise Error("Store name {0} != {1}".format(name,self.name))
+            raise Exception("Store name {0} != {1}".format(name,self.name))
 
     def record(self,name,path,hash):
         self.checkname(name)
