@@ -1,6 +1,6 @@
 from setuptools import setup
 setup(name='shatag',
-      version = '0.3',
+      version = '0.3.1',
       description = 'File checksumming utility',
       author = 'Maxime Augier',
       author_email = 'max@xolus.net',
