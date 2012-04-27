@@ -90,10 +90,12 @@ class IFile(object):
             print('<outdated>  {0}'.format(self.path(canonical)), file=sys.stderr)
 
 
-    def rehash(self):
+    def rehash(self, canonical=False):
         """Rehash the file and store the new checksum and timestamp"""
         self.ts = self.mtime
         newsum = hashfile(self.filename)
+        if self.state == 'good' and newsum != self.shatag:
+            print('<invalid>  {0}'.format(self.path(canonical)), file=sys.stderr)
         self.shatag = newsum
         self.write()
         self.state = 'good'
