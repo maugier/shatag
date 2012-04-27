@@ -39,7 +39,7 @@ class IFile(object):
         """Creates a file object. This will load the corresponding timestamp and xattrs from the filesystem."""
         self.filename = filename 
         self.db = db
-        self.mtime = int(os.stat(filename).st_mtime)
+        self.mtime = float(os.stat(filename).st_mtime)
 
         self.ts = None
         self.shatag = None

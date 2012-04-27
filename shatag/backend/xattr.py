@@ -6,7 +6,7 @@ class File(shatag.base.IFile):
     def read(self):
 
         try:
-            self.ts = int(xattr.getxattr(self.filename, 'user.shatag.ts'))
+            self.ts = float(xattr.getxattr(self.filename, 'user.shatag.ts'))
             self.shatag = xattr.getxattr(self.filename, 'user.shatag.sha256').decode('ascii')
         except IOError as e:
             if e.errno != 61:  # no tag present
