@@ -7,4 +7,4 @@ setup(name='shatag',
       url = 'http://bitbucket.org/maugier/shatag',
       packages = ['shatag','shatag.backend','shatag.store'],
       #install_requires=['argparse'],
-      scripts = ['bin/shatag', 'bin/shatag-add', 'bin/shatag-mkdb', 'bin/shatagd'])
+      scripts = ['bin/shatag', 'bin/shatag-add', 'bin/shatagd'])
