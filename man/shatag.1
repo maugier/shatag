@@ -54,7 +54,8 @@ When running with
 .B -t
 or
 .B -u
-, recompute the checksum even if the file modification has not changed.
+, recompute the checksum even if the file modification time has not changed. If the old
+checksum differs, report the file as corrupted.
 
 .IP "\fB\-h, \-\-help\fP"
 Displays the help message
