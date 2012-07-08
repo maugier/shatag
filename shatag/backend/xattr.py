@@ -6,7 +6,7 @@ class File(shatag.base.IFile):
     def read(self):
 
         try:
-            self.ts = float(xattr.getxattr(self.filename, 'user.shatag.ts'))
+            self.ts = xattr.getxattr(self.filename, 'user.shatag.ts').decode('ascii')
             self.shatag = xattr.getxattr(self.filename, 'user.shatag.sha256').decode('ascii')
         except IOError as e:
             if e.errno != 61:  # no tag present
@@ -14,7 +14,7 @@ class File(shatag.base.IFile):
 
     def write(self):
         xattr.setxattr(self.filename, 'user.shatag.sha256', self.shatag.encode('ascii'))
-        xattr.setxattr(self.filename, 'user.shatag.ts', str(self.mtime).encode('ascii'))
+        xattr.setxattr(self.filename, 'user.shatag.ts', self.mtime.encode('ascii'))
 
 
 class Backend:
