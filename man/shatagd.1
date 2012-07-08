@@ -8,6 +8,7 @@ shatagd - Automatically maintain hash tags for files in a given directory
 .B shatagd
 .nh
 [\fB\-druv\fR]
+[\fB\-b \fIBACKEND\fR]
 [\fBPATH\fR]...
 .hy
 
@@ -32,6 +33,9 @@ Only update already tagged files. See the shatag(1) manpage for pitfalls.
 
 .IP "\fB\-v, \-\-verbose\fP"
 Write to stdout the paths of files which have their tags recomputed.
+
+.IP "\fB\-b \fIBACKEND\fB, --backend \fIBACKEND\fP"
+Backend to use. see the \fB--database\fP option of shatag(1).
 
 .SH BUGS
 Recursive mode is subject to an unavoidable race condition, due to a limitation of inotify.
