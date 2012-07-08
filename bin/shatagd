@@ -46,6 +46,7 @@ class Handler(pyinotify.ProcessEvent):
 
             if args.put:
                 store.put(file)
+                store.commit()
 
         except IOError as e:
             print ('shatagd: "{0}": IOError {1}: {2}'.format(filename, e.errno, e.strerror), file=sys.stderr) 
