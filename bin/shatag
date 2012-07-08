@@ -39,7 +39,7 @@ if args.files == []:
                                       and not x.startswith('.'), os.listdir('.'))
 
 
-if (args.quiet and (not args.verbose) and not (args.update or args.tag)):
+if (args.quiet and (not args.verbose) and not (args.update or args.tag or args.put)):
     print ('shatag: Warning: this combination of flags does not do anything.', file=sys.stderr)
     exit(1)
 
