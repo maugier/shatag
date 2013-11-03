@@ -210,6 +210,7 @@ class StoreResult(object):
 
     def pretty(self):
         prefix = '\x1b[33;1m- '
+        # sha256 of empty file
         if self.file.shatag == 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855':
             prefix = '\x1b[35;1m* ' 
         elif self.status == 2:
@@ -244,5 +245,5 @@ def backend(name):
     """Create a Backend object. A backend is an abstraction for local tag storage, that may
     not have a fast way of locating files with identical hashes, but is fast to query on a per-file basis.
     """
-    return __import__('shatag.backend.{0}'.format(name), globals(), locals(), ['Backend'], -1).Backend()
+    return __import__('shatag.backend.{0}'.format(name), globals(), locals(), ['Backend'], 0).Backend()
 
