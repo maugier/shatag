@@ -103,11 +103,11 @@ def main():
                 pass
     
         except IOError as e:
-            print ('shatag: "{0}": IOError {1}: {2}'.format(filename, e.errno, e.strerror), file=sys.stderr) 
+            print ('shatag: "{0}": IOError {1}: {2}'.format(filename.encode(), e.errno, e.strerror), file=sys.stderr) 
             if e.errno == 32:
                 raise
             if e.errno == 95:
-                print ('shatag: "{0}": Operation Unsupported. Did you forget to enable user_xattr ?', file=sys.stderr)
+                print ('shatag: "{0}": Operation Unsupported. Did you forget to enable user_xattr ?'.format(filename.encode()), file=sys.stderr)
         except OSError as e:
             print ('shatag: {0}'.format(e), file=sys.stderr)
     
