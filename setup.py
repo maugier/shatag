@@ -7,4 +7,11 @@ setup(name='shatag',
       url = 'http://bitbucket.org/maugier/shatag',
       packages = ['shatag','shatag.backend','shatag.store'],
       install_requires=['pyyaml','xattr'],
-      scripts = ['bin/shatag', 'bin/shatag-add', 'bin/shatagd'])
+      entry_points={
+          'console_scripts': [
+              'shatag = shatag.cli.shatag:main',
+              'shatag-add = shatag.cli.add:main',
+              'shatagd = shatag.cli.shatagd:main'
+          ]
+      }
+)
