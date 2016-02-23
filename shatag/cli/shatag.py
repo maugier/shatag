@@ -85,7 +85,7 @@ def main():
     
             try:
                 if not (args.quiet or args.lookup or args.lookup_verbose):
-                    print(file.show(canonical = args.canonical), end=end)
+                    file.fsprint(file.show(canonical = args.canonical), end=end)
     
                 if args.put:
                     store.put(file)

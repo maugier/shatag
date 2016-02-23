@@ -81,13 +81,15 @@ class IFile(object):
         else:
             raise NoChecksum()
 
+    def fsprint(self, s, file=sys.stdout, end='\n'):
+        file.buffer.write(os.fsencode(s + end))
 
     def verbose(self, canonical=False):
         """Print warnings if the checksum is missing or outdated"""
         if self.state == 'missing':
-            print('<missing>  {0}'.format(self.path(canonical)), file=sys.stderr)
+            self.fsprint('<missing>  {0}'.format(self.path(canonical)), file=sys.stderr)
         if self.state == 'bad':
-            print('<outdated>  {0}'.format(self.path(canonical)), file=sys.stderr)
+            self.fsprint('<outdated>  {0}'.format(self.path(canonical)), file=sys.stderr)
 
 
     def rehash(self, canonical=False):
@@ -95,7 +97,7 @@ class IFile(object):
         self.ts = self.mtime
         newsum = hashfile(self.filename)
         if self.state == 'good' and newsum != self.shatag:
-            print('<invalid>  {0}'.format(self.path(canonical)), file=sys.stderr)
+            self.fsprint('<invalid>  {0}'.format(self.path(canonical)), file=sys.stderr)
         self.shatag = newsum
         self.write()
         self.state = 'good'
