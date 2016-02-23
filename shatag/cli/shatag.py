@@ -91,7 +91,7 @@ def main():
                     store.put(file)
     
                 if args.lookup:
-                    print(store.lookup(file, remotenames=args.remote).pretty())
+                    file.fsprint(store.lookup(file, remotenames=args.remote).pretty())
     
                 if args.lookup_verbose:
                     r = store.lookup(file)
