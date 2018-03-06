@@ -7,6 +7,7 @@ import os
 import os.path
 import shatag
 import sys
+import errno
 
 config = shatag.Config()
 
@@ -104,9 +105,9 @@ def main():
     
         except IOError as e:
             print ('shatag: "{0}": IOError {1}: {2}'.format(filename.encode(), e.errno, e.strerror), file=sys.stderr) 
-            if e.errno == 32:
+            if e.errno == errno.EPIPE:
                 raise
-            if e.errno == 95:
+            if e.errno == errno.ENOTSUP:
                 print ('shatag: "{0}": Operation Unsupported. Did you forget to enable user_xattr ?'.format(filename.encode()), file=sys.stderr)
         except OSError as e:
             print ('shatag: {0}'.format(e), file=sys.stderr)
