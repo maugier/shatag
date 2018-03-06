@@ -1,6 +1,7 @@
 from os import fsencode
 import shatag.base
 import xattr
+import errno
 
 class File(shatag.base.IFile):
     name = "Xattr store" 
@@ -10,7 +11,7 @@ class File(shatag.base.IFile):
             self.ts = xattr.getxattr(fsencode(self.filename), 'user.shatag.ts').decode('ascii')
             self.shatag = xattr.getxattr(fsencode(self.filename), 'user.shatag.sha256').decode('ascii')
         except IOError as e:
-            if e.errno != 61:  # no tag present
+            if e.errno != errno.ENODATA:  # no tag present
                raise e
 
     def write(self):
